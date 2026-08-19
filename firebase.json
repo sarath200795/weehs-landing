@@ -7,7 +7,8 @@
       "**/.*",
       "**/node_modules/**",
       "README.md",
-      "DEPLOY.md"
+      "DEPLOY.md",
+      "CNAME"
     ],
     "cleanUrls": true,
     "trailingSlash": false,
