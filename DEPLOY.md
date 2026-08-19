@@ -8,7 +8,7 @@ for you — run the steps in order and the site plus all six apps end up on one 
 
 | Host | Serves | Platform today |
 | --- | --- | --- |
-| `weehs.org` + `www.weehs.org` | this landing page | Firebase Hosting — `weehs-org-site.web.app` |
+| `weehs.org` + `www.weehs.org` | this landing page | GitHub Pages or Firebase — see §3 |
 | `fire-marshal.weehs.org` | Fire Marshal | Vercel — `fire-marshal.vercel.app` |
 | `hecp.weehs.org` | HECP LOTO | Vercel — `hecp-loto.vercel.app` |
 | `permits.weehs.org` | Online Permit to Work | Vercel — `permit-to-work-two.vercel.app` |
@@ -19,10 +19,33 @@ for you — run the steps in order and the site plus all six apps end up on one 
 Change any name you dislike in `assets/js/products.js` (`domain` field) and in this table — the
 landing page reads it from there.
 
-## 2. The landing page — already deployed
+## 2. Source of truth: GitHub
 
-It lives in its own Firebase project, separate from the app project so nothing here can touch
-the OHS Suite:
+The site is a git repository. Push it to GitHub and everything below hangs off that:
+
+```bash
+gh repo create weehs-landing --public --source=. --remote=origin --push
+```
+
+Repository: `sarath200795/weehs-landing` · branch `main` · site files at the repo root.
+
+## 3. Where weehs.org is served from — pick one
+
+Both options work; the domain can only point at one of them.
+
+### 3A. GitHub Pages (serve straight from the repo — no build, no secrets)
+
+Settings → Pages → Source: **Deploy from a branch** → `main` / `/ (root)` → Save.
+Then Settings → Pages → Custom domain → `weehs.org` → Save → tick **Enforce HTTPS** once the
+certificate is issued (a few minutes to an hour after DNS resolves).
+
+The `CNAME` file in the repo root already contains `weehs.org`, which keeps the domain attached
+across pushes. Every push to `main` republishes the site — no workflow file needed.
+
+Also verify the domain under GitHub → Settings → Pages → "Verify a domain" so nobody else can
+claim `*.weehs.org` on GitHub Pages.
+
+### 3B. Firebase Hosting (already deployed, live today)
 
 - Project: **`weehs-org-site`** (display name "WE EHS")
 - Live at: **https://weehs-org-site.web.app**
@@ -34,18 +57,17 @@ Config is committed as `firebase.json` + `.firebaserc`. To publish a change:
 npx firebase-tools deploy --only hosting --project weehs-org-site
 ```
 
-**Attach the domain** (console only — the CLI cannot add custom domains):
-Hosting → Add custom domain → `weehs.org`, then repeat for `www.weehs.org` and set it to
-redirect to the apex. Firebase gives you a TXT record to verify ownership and two A records for
-the apex; add them at the registrar. Certificates issue automatically, usually within an hour,
-occasionally up to 24h.
+Attach the domain in Hosting → Add custom domain → `weehs.org` (console only — the CLI cannot add
+custom domains). Firebase issues a TXT verification record and its own A records.
 
-Keep the redirect direction consistent with `<link rel="canonical" href="https://weehs.org/">`
-in `index.html`.
+If you go with 3A, keep this as a staging URL — nothing breaks by leaving it deployed.
 
-## 3. DNS records at the registrar
+Either way, keep the redirect direction (`www` → apex, or the reverse) consistent with
+`<link rel="canonical" href="https://weehs.org/">` in `index.html`.
 
-Add one record per app. Vercel serves apps from a CNAME:
+## 4. DNS records at the registrar
+
+**The six app subdomains** — five on Vercel, one on Firebase:
 
 ```
 fire-marshal   CNAME   cname.vercel-dns.com.
@@ -53,16 +75,30 @@ hecp           CNAME   cname.vercel-dns.com.
 permits        CNAME   cname.vercel-dns.com.
 audit          CNAME   cname.vercel-dns.com.
 hira           CNAME   cname.vercel-dns.com.
+suite          A       (two values from the weehs-4eb28 Firebase console)
+suite          TXT     (verification value from that console)
 ```
 
-The apex and `www` come from the `weehs-org-site` Firebase project, and `suite` from the
-`weehs-4eb28` project — each gives you its own A records plus a TXT verification record. Take
-those values from the respective Firebase console rather than copying them here, because they are
-issued per project.
+**The apex and www**, if you chose GitHub Pages (3A):
+
+```
+@     A       185.199.108.153
+@     A       185.199.109.153
+@     A       185.199.110.153
+@     A       185.199.111.153
+@     AAAA    2606:50c0:8000::153
+@     AAAA    2606:50c0:8001::153
+@     AAAA    2606:50c0:8002::153
+@     AAAA    2606:50c0:8003::153
+www   CNAME   sarath200795.github.io.
+```
+
+If you chose Firebase (3B) instead, use the A and TXT records the `weehs-org-site` console shows
+you — they are issued per project, so do not copy values from anywhere else.
 
 Keep TTL low (300s) during the cutover, raise it afterwards.
 
-## 4. Attach the domain in each platform
+## 5. Attach the domain in each platform
 
 **Vercel — once per project** (5 projects):
 Project → Settings → Domains → Add → `<sub>.weehs.org` → it verifies the CNAME and issues the
@@ -73,7 +109,7 @@ certificate automatically. Set the weehs.org subdomain as the **production domai
 Hosting → Add custom domain → `suite.weehs.org` → add the TXT record it shows → wait for
 verification → add the two A records → certificate provisioning takes up to 24h.
 
-## 5. The part that breaks sign-in if you skip it
+## 6. The part that breaks sign-in if you skip it
 
 Adding a domain is not enough — the apps' auth and API layers only accept known origins:
 
@@ -90,7 +126,7 @@ Adding a domain is not enough — the apps' auth and API layers only accept know
   old codes must keep resolving. If they do, keep the `*.vercel.app` host alive as a redirect
   rather than removing it.
 
-## 6. Flip the landing page over
+## 7. Flip the landing page over
 
 Once `https://fire-marshal.weehs.org` (and the rest) load over HTTPS, edit
 `assets/js/app.js`:
@@ -102,7 +138,7 @@ domainsLive: true,
 Every card link, trial handoff, session bar and carousel URL label switches from the platform
 URLs to the weehs.org subdomains. Redeploy the landing page.
 
-## 7. Verify
+## 8. Verify
 
 - [ ] `https://weehs.org` and `https://www.weehs.org` both resolve, one redirects to the other
 - [ ] All six subdomains load over HTTPS with a valid certificate
@@ -113,7 +149,7 @@ URLs to the weehs.org subdomains. Redeploy the landing page.
 - [ ] Landing page trial flow opens the right subdomain for each of the six products
 - [ ] `https://weehs.org/sitemap.xml` and `/robots.txt` return 200
 
-## 8. Still placeholders
+## 9. Still placeholders
 
 `sales@weehs.org`, `+91 00000 00000` and the 14-day trial length in `assets/js/app.js` are
 assumptions — set them before announcing the domain. If you want lead capture to survive

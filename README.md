@@ -6,6 +6,8 @@ open `index.html` (or serve the folder) and it runs.
 ```
 index.html                 page structure
 DEPLOY.md                  weehs.org domain + subdomain cutover runbook
+CNAME                      custom domain for GitHub Pages
+firebase.json, .firebaserc Firebase Hosting config
 robots.txt, sitemap.xml    for weehs.org
 assets/css/styles.css      all styling
 assets/js/products.js      product catalogue — the single source of truth
@@ -22,6 +24,19 @@ npx --yes http-server . -p 5173 -c-1
 ```
 
 Then open http://127.0.0.1:5173
+
+## Publish
+
+The repo is the source of truth. Pushing to `main` on GitHub publishes the site when GitHub Pages
+is enabled (`CNAME` in the repo root holds `weehs.org`); a Firebase Hosting copy also exists at
+https://weehs-org-site.web.app and is redeployed with:
+
+```bash
+npx firebase-tools deploy --only hosting --project weehs-org-site
+```
+
+Pick one of the two to serve `weehs.org` — [DEPLOY.md](DEPLOY.md) §3 covers both and lists the
+exact DNS records for each.
 
 ## The products, and the domain switch
 
@@ -149,7 +164,8 @@ Edit `assets/js/products.js`:
   tagline: 'Reporting, investigation and CAPA',
   color: '#B45309',              // accent used across the card and modal
   mark: 'IM',                    // two-letter badge
-  app: 'https://incident-manager.example.app',
+  domain: 'https://incident-manager.weehs.org',
+  hosting: 'https://incident-manager.example.app',
   summary: '…',
   features: ['…'],
   idealFor: '…',
