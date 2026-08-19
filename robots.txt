@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://weehs.org/sitemap.xml
