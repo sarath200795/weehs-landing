@@ -5,6 +5,7 @@ open `index.html` (or serve the folder) and it runs.
 
 ```
 index.html                 page structure
+access.html                internal access-control console (not linked from the site)
 DEPLOY.md                  weehs.org domain + subdomain cutover runbook
 CNAME                      custom domain for GitHub Pages
 firebase.json, .firebaserc Firebase Hosting config
@@ -12,6 +13,8 @@ robots.txt, sitemap.xml    for weehs.org
 assets/css/styles.css      all styling
 assets/js/products.js      product catalogue — the single source of truth
 assets/js/app.js           carousel, trial flow, session bar, feedback, enquiry
+assets/css/access.css      styling for access.html only
+assets/js/access.js        accounts, day counter, app + module permissions
 assets/screens/*.png       screenshots captured from the live apps
 assets/img/favicon.svg
 .claude/launch.json        dev-server config for the preview tool
@@ -129,6 +132,45 @@ WEEHS.exportLeads()  // downloads weehs-leads.json
 **Placeholders to confirm before this goes public:** `trialDays: 14` (the apps do not enforce a
 trial length today), `sales@weehs.org`, `support@weehs.org` and `+91 00000 00000`.
 
+## Access control console
+
+`access.html` is an internal page — no link from the site, `noindex`, and disallowed in
+`robots.txt`. It answers two questions: **who is allowed into which app, and which modules
+inside it**, and **how long has each account existed**.
+
+- **Day counter.** Every account is counted from its created date. Day 1 is the day it was
+  created and it ticks over at midnight, not at the hour they signed up. Trial accounts also
+  show days remaining and flip to *Expired* on their own; back-date the created date on an
+  account that existed before you added it here.
+- **Apps and modules.** Each product in `products.js` carries a `modules` array. The console
+  builds one block per app with a master switch plus a checkbox per module, so an account can
+  have Permit to Work but only hot work and approvals, for example.
+- **Accounts come from two places.** *Import trial sign-ups* turns the `weehs_signup` records
+  the landing page already captured into accounts, dated from when the form was submitted; a
+  second product for the same email is added to that account instead of creating a duplicate.
+  *Add account* enters anyone else by hand.
+- **Passcode.** `CONFIG.passcode` at the top of `assets/js/access.js` (`weehs-admin` out of
+  the box — change it). It only hides the screen; the value ships in the file.
+
+Permissions are stored under the `weehs_accounts` localStorage key, in this browser only.
+**Nothing here enforces anything.** It is the record of intent — each WE EHS app still has to
+read the same record and enforce it server-side. Use *Export JSON* to get that record out:
+
+```json
+{
+  "exportedAt": "2026-08-20T09:00:00.000Z",
+  "products": [{ "id": "permit-to-work", "modules": ["raise", "hot-work", "…"] }],
+  "accounts": [{
+    "email": "ravi@bluesteel.co", "createdAt": "…", "dayNumber": 10,
+    "plan": "trial", "trialEndsAt": "…", "status": "trial",
+    "access": { "permit-to-work": { "enabled": true, "modules": ["raise", "hot-work"] } }
+  }]
+}
+```
+
+*Import JSON* reads the same shape back, matching on email, so the file can round-trip through
+a backend once one exists.
+
 ## Screenshots
 
 `assets/screens/` holds real captures of each app's `/login` and `/register-org` pages at
@@ -168,6 +210,9 @@ Edit `assets/js/products.js`:
   hosting: 'https://incident-manager.example.app',
   summary: '…',
   features: ['…'],
+  modules: [                     // what access.html can grant or withhold
+    { id: 'register', name: 'Incident register', note: 'Report and log incidents' }
+  ],
   idealFor: '…',
   screens: [{ src: 'assets/screens/incident-login.png', caption: 'Incident Manager — Sign in' }]
 }

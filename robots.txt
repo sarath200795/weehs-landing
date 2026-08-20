@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /access
+Disallow: /access.html
 
 Sitemap: https://weehs.org/sitemap.xml

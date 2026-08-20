@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Access control — WE EHS</title>
+<meta name="description" content="Internal WE EHS console for granting accounts access to apps and to the modules inside them.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/css/styles.css">
+<link rel="stylesheet" href="assets/css/access.css">
+</head>
+<body class="access-body">
+
+<a class="skip-link" href="#accounts">Skip to accounts</a>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="index.html" aria-label="WE EHS home">
+      <span class="brand-mark" aria-hidden="true">WE</span>
+      <span class="brand-text">
+        <strong>WE EHS</strong>
+        <em>Access control console</em>
+      </span>
+    </a>
+
+    <div class="header-actions">
+      <span class="console-tag" title="Nothing here leaves this browser">Internal · local data</span>
+      <a class="btn btn-ghost" href="index.html">Back to site</a>
+      <button class="btn btn-primary" type="button" data-add-account>Add account</button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ───────────────────────── GATE ───────────────────────── -->
+  <section class="gate" data-gate hidden>
+    <div class="gate-card">
+      <p class="eyebrow">Restricted</p>
+      <h1>Access control</h1>
+      <p>Enter the console passcode to manage who can open which app and which modules inside it.</p>
+      <form class="form" data-gate-form novalidate>
+        <div class="field">
+          <label for="gate-code">Passcode</label>
+          <input id="gate-code" name="code" type="password" autocomplete="off" required data-autofocus>
+        </div>
+        <button class="btn btn-primary btn-lg btn-block" type="submit">Unlock console</button>
+      </form>
+      <p class="hint">
+        This gate only hides the screen. It is not security — the page runs entirely in your
+        browser, so anyone with the file can read it. Real enforcement has to happen inside each
+        app, on the server.
+      </p>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── CONSOLE ───────────────────────── -->
+  <div class="console" data-console hidden>
+
+    <section class="section console-top">
+      <div class="wrap">
+        <p class="eyebrow">Accounts &amp; permissions</p>
+        <h1>Who can open what</h1>
+        <p class="lede">
+          Every account below is counted from the day it was created. Grant or withhold a whole app,
+          or go module by module inside it.
+        </p>
+
+        <ul class="stat-row" data-stats>
+          <li><strong data-stat="total">0</strong><span>accounts</span></li>
+          <li><strong data-stat="trial">0</strong><span>on trial</span></li>
+          <li><strong data-stat="active">0</strong><span>active</span></li>
+          <li><strong data-stat="expiring">0</strong><span>expiring in 3 days</span></li>
+          <li><strong data-stat="expired">0</strong><span>expired</span></li>
+          <li><strong data-stat="suspended">0</strong><span>suspended</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="accounts">
+      <div class="wrap">
+
+        <div class="toolbar">
+          <div class="field toolbar-search">
+            <label class="sr-only" for="tb-search">Search accounts</label>
+            <input id="tb-search" type="search" placeholder="Search name, email or organisation…" data-search>
+          </div>
+          <div class="field">
+            <label class="sr-only" for="tb-app">Filter by app</label>
+            <select id="tb-app" data-filter-app><option value="">All apps</option></select>
+          </div>
+          <div class="field">
+            <label class="sr-only" for="tb-status">Filter by status</label>
+            <select id="tb-status" data-filter-status>
+              <option value="">All statuses</option>
+              <option value="trial">Trial</option>
+              <option value="active">Active</option>
+              <option value="suspended">Suspended</option>
+              <option value="expired">Expired</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="sr-only" for="tb-sort">Sort</label>
+            <select id="tb-sort" data-sort>
+              <option value="age-desc">Oldest account first</option>
+              <option value="age-asc">Newest account first</option>
+              <option value="name">Name A–Z</option>
+              <option value="org">Organisation A–Z</option>
+              <option value="apps">Most apps granted</option>
+            </select>
+          </div>
+          <div class="toolbar-actions">
+            <button class="btn btn-outline" type="button" data-import-signups>Import trial sign-ups</button>
+            <button class="btn btn-outline" type="button" data-export>Export JSON</button>
+            <button class="btn btn-outline" type="button" data-import>Import JSON</button>
+            <input type="file" accept="application/json,.json" hidden data-import-file>
+          </div>
+        </div>
+
+        <p class="table-note" data-count>Showing 0 accounts.</p>
+
+        <div class="table-wrap">
+          <table class="acc-table">
+            <thead>
+              <tr>
+                <th scope="col">Account</th>
+                <th scope="col">Created</th>
+                <th scope="col" class="col-day">Day</th>
+                <th scope="col">Status</th>
+                <th scope="col">Apps &amp; modules</th>
+                <th scope="col"><span class="sr-only">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody data-rows></tbody>
+          </table>
+        </div>
+
+        <p class="empty" data-empty hidden>
+          No accounts yet. Use <strong>Add account</strong>, or
+          <button class="linkish" type="button" data-import-signups>import the trial sign-ups</button>
+          already captured on the landing page.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="notice">
+          <h2>How this is enforced</h2>
+          <p>
+            This console is the record of what each account is <em>meant</em> to have. It stores that
+            record in this browser and can export it as JSON. It does not, by itself, stop anyone
+            opening an app — each WE EHS app has to read the same record and enforce it server-side.
+            Export the JSON and feed it to that API when the backend is ready.
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-base">
+    <p>&copy; <span data-year>2026</span> WE EHS — internal console.</p>
+    <p class="muted">Data lives in this browser only. Export before clearing site data.</p>
+  </div>
+</footer>
+
+<!-- ─────────────────────────── DRAWER ─────────────────────────── -->
+<div class="drawer" data-drawer hidden>
+  <div class="drawer-backdrop" data-drawer-close></div>
+  <aside class="drawer-card" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+    <button class="modal-x" type="button" data-drawer-close aria-label="Close">&times;</button>
+    <div class="drawer-body" data-drawer-body>
+      <h2 id="drawer-title" class="modal-title">Loading…</h2>
+    </div>
+  </aside>
+</div>
+
+<!-- ─────────────────────────── MODAL ─────────────────────────── -->
+<div class="modal" data-modal hidden>
+  <div class="modal-backdrop" data-modal-close></div>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <button class="modal-x" type="button" data-modal-close aria-label="Close">&times;</button>
+    <div class="modal-body" data-modal-body>
+      <h2 id="modal-title" class="modal-title">Loading…</h2>
+    </div>
+  </div>
+</div>
+
+<div class="toast" data-toast hidden role="status" aria-live="polite"></div>
+
+<script src="assets/js/products.js"></script>
+<script src="assets/js/access.js"></script>
+</body>
+</html>

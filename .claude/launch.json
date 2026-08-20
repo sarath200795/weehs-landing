@@ -4,8 +4,9 @@
     {
       "name": "weehs-landing",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["--yes", "http-server", ".", "-p", "5173", "-c-1"],
-      "port": 5173
+      "runtimeArgs": ["--yes", "http-server", ".", "-c-1"],
+      "port": 5199,
+      "autoPort": true
     }
   ]
 }
