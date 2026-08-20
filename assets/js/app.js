@@ -11,6 +11,20 @@
 (function () {
   'use strict';
 
+  /* ── 0. Canonical host ─────────────────────────────────────────────────────
+     The page is also reachable on its hosting platform URLs (*.web.app,
+     *.github.io) and on www. Send every one of them to weehs.org so only the
+     branded domain is ever shown or shared. Local development is untouched. */
+  (function canonicalHost() {
+    var CANONICAL = 'weehs.org';
+    var h = location.hostname;
+    if (!h || h === CANONICAL) return;
+    if (h === 'localhost' || h === '127.0.0.1' || h === '::1' || location.protocol === 'file:') return;
+    if (h === 'www.' + CANONICAL || /\.web\.app$|\.firebaseapp\.com$|\.github\.io$|\.vercel\.app$/.test(h)) {
+      location.replace('https://' + CANONICAL + location.pathname + location.search + location.hash);
+    }
+  })();
+
   /* ── 1. Config ─────────────────────────────────────────────────────────── */
   var CONFIG = {
     site: 'https://weehs.org',
@@ -22,7 +36,7 @@
     // Flip to true once the weehs.org subdomains resolve and serve HTTPS.
     // false  -> links use each product's current platform URL (hosting)
     // true   -> links use its weehs.org subdomain (domain)
-    domainsLive: false,
+    domainsLive: true,
     // routes every WE EHS app shares, appended to the product's base URL
     routes: { login: '/login', register: '/register-org', join: '/signup' }
   };
