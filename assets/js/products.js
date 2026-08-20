@@ -29,6 +29,7 @@ window.WEEHS_PRODUCTS = [
     tagline: 'Fire extinguisher & fire equipment management',
     color: '#E11D2E',
     mark: 'FM',
+    logo: 'assets/img/logos/fire-marshal.svg',
     domain: 'https://fire-marshal.weehs.org',
     hosting: 'https://fire-marshal.vercel.app',
     summary:
@@ -61,6 +62,7 @@ window.WEEHS_PRODUCTS = [
     tagline: 'Hazardous Energy Control Program — lockout / tagout',
     color: '#B7791F',
     mark: 'HE',
+    logo: 'assets/img/logos/hecp.svg',
     domain: 'https://hecp.weehs.org',
     hosting: 'https://hecp-loto.vercel.app',
     summary:
@@ -93,6 +95,7 @@ window.WEEHS_PRODUCTS = [
     tagline: 'Hot work, confined space, height, electrical & more',
     color: '#F97316',
     mark: 'PW',
+    logo: 'assets/img/logos/permit-to-work.svg',
     domain: 'https://permits.weehs.org',
     hosting: 'https://permit-to-work-two.vercel.app',
     summary:
@@ -127,6 +130,7 @@ window.WEEHS_PRODUCTS = [
     tagline: 'Internal audit portal — findings and CAPA',
     color: '#2563EB',
     mark: 'IA',
+    logo: 'assets/img/logos/iso-45001-auditor.svg',
     domain: 'https://audit.weehs.org',
     hosting: 'https://internal-audit-portal.vercel.app',
     summary:
@@ -159,6 +163,7 @@ window.WEEHS_PRODUCTS = [
     tagline: 'Hazard identification & risk assessment',
     color: '#4338CA',
     mark: 'HR',
+    logo: 'assets/img/logos/hira.svg',
     domain: 'https://hira.weehs.org',
     hosting: 'https://hira-ruddy.vercel.app',
     summary:
@@ -191,6 +196,7 @@ window.WEEHS_PRODUCTS = [
     tagline: 'Occupational Health & Safety Management System',
     color: '#C0442C',
     mark: 'OS',
+    logo: 'assets/img/logos/ohs-suite.svg',
     featured: true,
     domain: 'https://suite.weehs.org',
     hosting: 'https://weehs-4eb28.web.app',

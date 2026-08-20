@@ -160,6 +160,16 @@
     return data;
   }
 
+  // Each product renders its own app icon; the two-letter mark is the fallback.
+  function productMarkHtml(p) {
+    if (!p) return '';
+    if (p.logo) {
+      return '<img class="product-mark product-mark-img" src="' + esc(p.logo) +
+        '" alt="" width="48" height="48" loading="lazy" decoding="async">';
+    }
+    return '<span class="product-mark" aria-hidden="true">' + esc(p.mark) + '</span>';
+  }
+
   function productOptionsHtml(selectedId) {
     return PRODUCTS.map(function (p) {
       return '<option value="' + p.id + '"' + (p.id === selectedId ? ' selected' : '') + '>' +
@@ -264,7 +274,7 @@
         '<article class="product-card' + (p.featured ? ' is-featured' : '') + '" style="--accent:' + esc(p.color) + '">' +
           (p.featured ? '<span class="ribbon">All modules</span>' : '') +
           '<div class="product-head">' +
-            '<span class="product-mark" aria-hidden="true">' + esc(p.mark) + '</span>' +
+            productMarkHtml(p) +
             '<div><h3>' + esc(p.name) + '</h3><p class="product-tagline">' + esc(p.tagline) + '</p></div>' +
           '</div>' +
           '<p class="product-summary">' + esc(p.summary) + '</p>' +
@@ -338,7 +348,7 @@
   function modalHead(p, title, sub) {
     return '' +
       '<div class="modal-head"' + (p ? ' style="--accent:' + esc(p.color) + '"' : '') + '>' +
-        (p ? '<span class="product-mark" aria-hidden="true">' + esc(p.mark) + '</span>' : '') +
+        (p ? productMarkHtml(p) : '') +
         '<div>' +
           (p ? '<p class="modal-kicker">' + esc(p.name) + ' · ' + esc(p.tagline) + '</p>' : '') +
           '<h2 id="modal-title" class="modal-title">' + esc(title) + '</h2>' +
