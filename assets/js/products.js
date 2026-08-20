@@ -52,8 +52,10 @@ window.WEEHS_PRODUCTS = [
     ],
     idealFor: 'Fire officers, site EHS teams, facility managers',
     screens: [
-      { src: 'assets/screens/fire-marshal-login.png', caption: 'Fire Marshal — Sign in' },
-      { src: 'assets/screens/fire-marshal-register.png', caption: 'Fire Marshal — Register organization' }
+      { src: 'assets/screens/fire-marshal-dashboard.png', caption: 'Fire Marshal — fleet dashboard' },
+      { src: 'assets/screens/fire-marshal-add.png', caption: 'Fire Marshal — register an extinguisher' },
+      { src: 'assets/screens/fire-marshal-qr.png', caption: 'Fire Marshal — print QR asset tags' },
+      { src: 'assets/screens/fire-marshal-login.png', caption: 'Fire Marshal — sign in' }
     ]
   },
   {
@@ -85,8 +87,11 @@ window.WEEHS_PRODUCTS = [
     ],
     idealFor: 'Maintenance, engineering and plant safety teams',
     screens: [
-      { src: 'assets/screens/hecp-login.png', caption: 'HECP LOTO — Sign in' },
-      { src: 'assets/screens/hecp-register.png', caption: 'HECP LOTO — Register organization' }
+      { src: 'assets/screens/hecp-dashboard.png', caption: 'HECP LOTO — operations overview' },
+      { src: 'assets/screens/hecp-inventory.png', caption: 'HECP LOTO — procedure inventory' },
+      { src: 'assets/screens/hecp-procedure.png', caption: 'HECP LOTO — posted lockout procedure' },
+      { src: 'assets/screens/hecp-tags.png', caption: 'HECP LOTO — printed energy tags' },
+      { src: 'assets/screens/hecp-login.png', caption: 'HECP LOTO — sign in' }
     ]
   },
   {
@@ -120,8 +125,10 @@ window.WEEHS_PRODUCTS = [
     ],
     idealFor: 'Operations, shutdown teams, contractor-heavy sites',
     screens: [
-      { src: 'assets/screens/permit-to-work-login.png', caption: 'Permit to Work — Sign in' },
-      { src: 'assets/screens/permit-to-work-register.png', caption: 'Permit to Work — Register organization' }
+      { src: 'assets/screens/permits-dashboard.png', caption: 'Permit to Work — permit overview' },
+      { src: 'assets/screens/permits-detail.png', caption: 'Permit to Work — permit with scan QR' },
+      { src: 'assets/screens/permits-list.png', caption: 'Permit to Work — all permits' },
+      { src: 'assets/screens/permit-to-work-login.png', caption: 'Permit to Work — sign in' }
     ]
   },
   {
@@ -153,8 +160,10 @@ window.WEEHS_PRODUCTS = [
     ],
     idealFor: 'QHSE managers, internal auditors, certification leads',
     screens: [
-      { src: 'assets/screens/iso-45001-login.png', caption: 'ISO 45001 Auditor — Sign in' },
-      { src: 'assets/screens/iso-45001-register.png', caption: 'ISO 45001 Auditor — Register organization' }
+      { src: 'assets/screens/audit-hub.png', caption: 'ISO 45001 Auditor — audit hub' },
+      { src: 'assets/screens/audit-workplace.png', caption: 'ISO 45001 Auditor — audit report details' },
+      { src: 'assets/screens/audit-capa.png', caption: 'ISO 45001 Auditor — CAPA tracker' },
+      { src: 'assets/screens/iso-45001-login.png', caption: 'ISO 45001 Auditor — sign in' }
     ]
   },
   {
@@ -186,8 +195,8 @@ window.WEEHS_PRODUCTS = [
     ],
     idealFor: 'EHS teams, process safety, activity owners',
     screens: [
-      { src: 'assets/screens/hira-login.png', caption: 'HIRA — Sign in' },
-      { src: 'assets/screens/hira-register.png', caption: 'HIRA — Register organization' }
+      { src: 'assets/screens/hira-login.png', caption: 'HIRA — sign in' },
+      { src: 'assets/screens/hira-register.png', caption: 'HIRA — register organization' }
     ]
   },
   {
@@ -222,8 +231,8 @@ window.WEEHS_PRODUCTS = [
     ],
     idealFor: 'Multi-site organisations standardising EHS',
     screens: [
-      { src: 'assets/screens/ohs-suite-login.png', caption: 'OHS Suite — Sign in' },
-      { src: 'assets/screens/ohs-suite-register.png', caption: 'OHS Suite — Register organization' }
+      { src: 'assets/screens/ohs-suite-login.png', caption: 'OHS Suite — sign in' },
+      { src: 'assets/screens/ohs-suite-register.png', caption: 'OHS Suite — register organization' }
     ]
   }
 ];
