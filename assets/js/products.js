@@ -208,6 +208,8 @@ window.WEEHS_PRODUCTS = [
     logo: 'assets/img/logos/ohs-suite.svg',
     featured: true,
     domain: 'https://suite.weehs.org',
+    // suite.weehs.org is not resolving yet — keep this card on the platform URL
+    domainReady: false,
     hosting: 'https://weehs-4eb28.web.app',
     summary:
       'Every OHS module under one login — fire equipment, LOTO, permits, audits and risk assessment in a single management system with one user list and one site hierarchy.',

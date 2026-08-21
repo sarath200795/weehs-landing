@@ -44,7 +44,8 @@
   // Base URL for a product, honouring the domainsLive switch.
   function appBase(p) {
     if (!p) return '';
-    return (CONFIG.domainsLive ? p.domain : p.hosting) || p.domain || p.hosting || '';
+    var useDomain = CONFIG.domainsLive && p.domainReady !== false;
+    return (useDomain ? p.domain : p.hosting) || p.domain || p.hosting || '';
   }
 
   // Full URL: appLink(product, 'register') -> https://…/register-org
