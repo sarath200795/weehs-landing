@@ -28,7 +28,10 @@
   /* ── 1. Config ─────────────────────────────────────────────────────────── */
   var CONFIG = {
     site: 'https://weehs.org',
-    endpoint: null,               // e.g. 'https://api.weehs.org/v1/leads'
+    // Formspree form URL — paste the one from formspree.io/forms after creating
+    // the form, e.g. 'https://formspree.io/f/abcdwxyz'. Null keeps submissions
+    // in the visitor's browser only.
+    endpoint: null,
     trialDays: 14,                // length quoted in the copy — confirm commercially
     salesEmail: 'info@weehs.org',
     salesPhone: '+91 74570 06625',
@@ -84,6 +87,24 @@
   // Reference prefixes shown to the user, one per submission type.
   var REF = { signup: 'TRL', signin: 'SGN', enquiry: 'ENQ', feedback: 'FRQ' };
 
+  // Formspree renders a flat object as readable email fields; a nested envelope
+  // arrives as one blob of JSON. Any other endpoint gets the full envelope.
+  function payloadFor(entry) {
+    if (!/formspree.io/.test(CONFIG.endpoint || '')) return entry;
+
+    var flat = {
+      _subject: 'WE EHS ' + entry.type + ' — ' + entry.id,
+      reference: entry.id,
+      type: entry.type,
+      submittedAt: entry.at,
+      page: CONFIG.site
+    };
+    Object.keys(entry.data).forEach(function (k) { flat[k] = entry.data[k]; });
+    // lets you hit reply in the notification email and reach the sender
+    if (entry.data.email) flat._replyto = entry.data.email;
+    return flat;
+  }
+
   // Records a submission locally, then mirrors it to CONFIG.endpoint when set.
   function record(type, data) {
     var entry = { id: uid(REF[type] || 'WEE'), type: type, at: new Date().toISOString(), data: data };
@@ -96,9 +117,9 @@
       try {
         fetch(CONFIG.endpoint, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(entry)
-        })['catch'](function () { /* kept locally; retry handled by your backend sync */ });
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(payloadFor(entry))
+        })['catch'](function () { /* kept in localStorage either way */ });
       } catch (e) { /* ignore */ }
     }
     return entry;
