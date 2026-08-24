@@ -113,8 +113,8 @@ var CONFIG = {
   site: 'https://weehs.org',
   endpoint: 'https://api.weehs.org/v1/leads',   // POSTs {id, type, at, data} as JSON
   trialDays: 14,
-  salesEmail: 'sales@weehs.org',
-  salesPhone: '+91 00000 00000',
+  salesEmail: 'sarath200795@gmail.com',
+  salesPhone: '+91 74570 06625',
   carouselMs: 5000,
   domainsLive: false,
   routes: { login: '/login', register: '/register-org', join: '/signup' }
@@ -130,7 +130,7 @@ WEEHS.exportLeads()  // downloads weehs-leads.json
 ```
 
 **Placeholders to confirm before this goes public:** `trialDays: 14` (the apps do not enforce a
-trial length today), `sales@weehs.org`, `support@weehs.org` and `+91 00000 00000`.
+trial length today). Contact details are the owner’s personal Gmail and mobile — swap them for a business address when one exists.
 
 ## Access control console
 

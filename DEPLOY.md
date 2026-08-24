@@ -151,6 +151,6 @@ URLs to the weehs.org subdomains. Redeploy the landing page.
 
 ## 9. Still placeholders
 
-`sales@weehs.org`, `+91 00000 00000` and the 14-day trial length in `assets/js/app.js` are
-assumptions — set them before announcing the domain. If you want lead capture to survive
+The 14-day trial length in `assets/js/app.js` is an
+assumption — confirm it before announcing the domain. Contact details are a personal Gmail and mobile. If you want lead capture to survive
 deployment, also set `CONFIG.endpoint`; until then submissions only live in the visitor's browser.

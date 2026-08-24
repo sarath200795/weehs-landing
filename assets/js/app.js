@@ -30,8 +30,8 @@
     site: 'https://weehs.org',
     endpoint: null,               // e.g. 'https://api.weehs.org/v1/leads'
     trialDays: 14,                // length quoted in the copy — confirm commercially
-    salesEmail: 'sales@weehs.org',
-    salesPhone: '+91 00000 00000',
+    salesEmail: 'sarath200795@gmail.com',
+    salesPhone: '+91 74570 06625',
     carouselMs: 5000,
     // Flip to true once the weehs.org subdomains resolve and serve HTTPS.
     // false  -> links use each product's current platform URL (hosting)
