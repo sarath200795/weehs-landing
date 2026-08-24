@@ -184,7 +184,7 @@ captures:
 
 ```js
 screens: [
-  { src: 'assets/screens/fire-marshal-login.png',     caption: 'Fire Marshal — Sign in' },
+  { src: 'assets/screens/fire-marshal-dashboard.png', caption: 'Fire Marshal — fleet dashboard' },
   { src: 'assets/screens/fire-marshal-dashboard.png', caption: 'Fire Marshal — Compliance dashboard' }
 ]
 ```
@@ -214,7 +214,7 @@ Edit `assets/js/products.js`:
     { id: 'register', name: 'Incident register', note: 'Report and log incidents' }
   ],
   idealFor: '…',
-  screens: [{ src: 'assets/screens/incident-login.png', caption: 'Incident Manager — Sign in' }]
+  screens: [{ src: 'assets/screens/incident-dashboard.png', caption: 'Incident Manager — dashboard' }]
 }
 ```
 
