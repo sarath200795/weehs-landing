@@ -40,7 +40,8 @@
     // false  -> links use each product's current platform URL (hosting)
     // true   -> links use its weehs.org subdomain (domain)
     domainsLive: true,
-    // routes every WE EHS app shares, appended to the product's base URL
+    // Public contract every WE EHS app (and the OHSMS shell) must expose.
+    // OHS Suite may override per-product via products.js `routes`.
     routes: { login: '/login', register: '/register-org', join: '/signup' }
   };
 
@@ -51,9 +52,14 @@
     return (useDomain ? p.domain : p.hosting) || p.domain || p.hosting || '';
   }
 
+  function productRoutes(p) {
+    return (p && p.routes) || CONFIG.routes;
+  }
+
   // Full URL: appLink(product, 'register') -> https://…/register-org
   function appLink(p, route) {
-    return appBase(p) + (CONFIG.routes[route] || CONFIG.routes.login);
+    var routes = productRoutes(p);
+    return appBase(p) + (routes[route] || CONFIG.routes[route] || CONFIG.routes.login);
   }
 
   function appHost(p) {
@@ -294,7 +300,7 @@
     grid.insertAdjacentHTML('beforeend', PRODUCTS.map(function (p) {
       return '' +
         '<article class="product-card' + (p.featured ? ' is-featured' : '') + '" style="--accent:' + esc(p.color) + '">' +
-          (p.featured ? '<span class="ribbon">All modules</span>' : '') +
+          (p.featured ? '<span class="ribbon">' + esc(p.ribbon || 'All modules') + '</span>' : '') +
           '<div class="product-head">' +
             productMarkHtml(p) +
             '<div><h3>' + esc(p.name) + '</h3><p class="product-tagline">' + esc(p.tagline) + '</p></div>' +
@@ -311,6 +317,7 @@
           '<a class="product-peek" href="' + esc(appLink(p, 'login')) + '" target="_blank" rel="noopener">' +
             'Open the live app &#8599; <span class="product-host">' + esc(appHost(p)) + '</span>' +
           '</a>' +
+          (p.launchNote ? '<p class="product-launch">' + esc(p.launchNote) + '</p>' : '') +
         '</article>';
     }).join(''));
 
@@ -822,6 +829,7 @@
   // Console helper for whoever is collecting leads before a backend exists.
   window.WEEHS = {
     config: CONFIG,
+    ohsmsHosting: window.WEEHS_OHSMS_HOSTING || '',
     leads: function () {
       return {
         signups: readStore('weehs_signup'),

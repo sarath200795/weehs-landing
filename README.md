@@ -50,7 +50,7 @@ exact DNS records for each.
 | Online Permit to Work | `permits.weehs.org` | https://permit-to-work-two.vercel.app |
 | ISO 45001 Auditor | `audit.weehs.org` | https://internal-audit-portal.vercel.app |
 | HIRA | `hira.weehs.org` | https://hira-ruddy.vercel.app |
-| OHS Suite | `suite.weehs.org` | https://weehs-4eb28.web.app |
+| OHS Suite (OHSMS shell) | `suite.weehs.org` | `WEEHS_OHSMS_HOSTING` in `assets/js/products.js` (currently https://weehs-4eb28.web.app) |
 
 Both URLs live on each product in `assets/js/products.js` (`domain` and `hosting`). One flag in
 `assets/js/app.js` decides which one every link uses:
@@ -61,15 +61,49 @@ domainsLive: false   // false = platform URLs · true = weehs.org subdomains
 
 Leave it `false` until DNS resolves and HTTPS is live, then flip it and redeploy — see
 [DEPLOY.md](DEPLOY.md) for the full cutover, including the Firebase Auth authorized-domains step
-that silently breaks sign-in if skipped.
+that silently breaks sign-in if skipped. A product can also set `domainReady: false` to keep using
+`hosting` after the global flag is on.
 
-Every app shares the same routes, which is what the landing page links into:
+Every app shares the same public routes, which is what the landing page links into:
 
 - `/login` — sign in
 - `/register-org` — create a new organisation (first account becomes admin)
 - `/signup` — join an organisation that already exists
 
-Those routes are set in `CONFIG.routes` in `assets/js/app.js`.
+Those routes are set in `CONFIG.routes` in `assets/js/app.js`. A product may override them with
+its own `routes` object in `products.js`. **OHSMS must keep serving these three paths on the
+shell** so Open app / Start trial / Register org / Join org from this site land in the live app.
+(OHSMS `src/App.jsx` already mounts them; if that ever changes, add aliases there rather than
+breaking this contract.)
+
+## Landing → OHSMS (OHS Suite)
+
+This site is the public entry. **OHS Suite is not a sixth mini-app** — its card, header trial
+CTA, “Start with the OHS Suite”, Open the live app, the trial handoff, and the session bar all
+open the **OHSMS multi-app shell** ([sarath200795/OHSMS](https://github.com/sarath200795/OHSMS)).
+
+| What | Where |
+| --- | --- |
+| Canonical domain | `https://suite.weehs.org` (OHSMS production environment URL in that repo’s deploy workflow) |
+| Firebase Hosting (today) | `window.WEEHS_OHSMS_HOSTING` at the top of `assets/js/products.js` |
+| Sign in | `{base}/login` |
+| Register organisation | `{base}/register-org` (OHSMS seeds module placeholders in the same org-create batch) |
+| Join an existing org | `{base}/signup` |
+
+`{base}` is `suite.weehs.org` when `domainsLive` is true, otherwise `WEEHS_OHSMS_HOSTING`.
+
+The public OHSMS repo does **not** commit the production Firebase project id (`.firebaserc` is
+gitignored; `docs/PRODUCTION.md` is private). https://weehs-4eb28.web.app is the best-known live
+host: it currently serves the OHSMS sign-in. If hosting moves, change **only**
+`WEEHS_OHSMS_HOSTING` — do not hard-code a second suite URL elsewhere.
+
+Inside OHSMS, the shell launches operating modules under `/apps/<key>/` once a **suite** (Core,
+Operations, Fire & Emergency, Compliance, Full) or **à-la-carte** grant is on. New organisations
+start with every module as a placeholder. This landing site does not implement entitlements;
+`access.html` lists the OHSMS registry keys as operator intent only.
+
+The other five products (Fire Marshal, HECP LOTO, Permit to Work, ISO 45001 Auditor, HIRA) stay
+on their own Vercel hosts and are unchanged by the OHSMS handoff.
 
 ## What the page does
 
@@ -144,7 +178,8 @@ inside it**, and **how long has each account existed**.
   account that existed before you added it here.
 - **Apps and modules.** Each product in `products.js` carries a `modules` array. The console
   builds one block per app with a master switch plus a checkbox per module, so an account can
-  have Permit to Work but only hot work and approvals, for example.
+  have Permit to Work but only hot work and approvals, for example. OHS Suite’s list matches
+  the OHSMS registry (intent only) — live grants are suites / à-la-carte inside OHSMS.
 - **Accounts come from two places.** *Import trial sign-ups* turns the `weehs_signup` records
   the landing page already captured into accounts, dated from when the form was submitted; a
   second product for the same email is added to that account instead of creating a duplicate.

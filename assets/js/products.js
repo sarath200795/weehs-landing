@@ -9,18 +9,35 @@
    Links use `hosting` until DNS is cut over, then flip CONFIG.domainsLive to
    true in app.js and everything switches to the weehs.org subdomains.
 
-   Every app follows the same routes:
+   Every app follows the same public routes (CONFIG.routes in app.js). A product
+   may set its own `routes` object; otherwise it inherits:
      /login         sign in
      /register-org  create a new organisation (the first account becomes admin)
      /signup        join an organisation that already exists
 
+   OHS Suite (id `ohs-suite`) is the public entry into OHSMS — the multi-app
+   shell at github.com/sarath200795/OHSMS. Set WEEHS_OHSMS_HOSTING if the live
+   Firebase Hosting URL changes. Canonical domain is suite.weehs.org.
+
    modules[] is the list of things inside each app that access can be granted or
    withheld on, one entry per module. access.html reads it to build the per-user
    permission grid, so adding a module there makes it regulatable immediately.
+   For OHS Suite those ids match the OHSMS registry; they are intent-only here.
+   Real entitlements (suites / à-la-carte) live in OHSMS on /platform.
 
    screens[] are real screenshots taken from those apps. Replace the files in
    assets/screens/ (same names) to refresh them, or add entries for in-app
    screens once we have captures that are safe to publish. */
+
+/* Live Firebase Hosting origin for the OHSMS shell (OHS Suite).
+   Public OHSMS docs do not publish the production project id (.firebaserc is
+   gitignored; docs/PRODUCTION.md is private). This is the best-known live
+   host: it serves the OHSMS sign-in with /login, /register-org and /signup.
+   OHSMS deploy.yml names https://suite.weehs.org as the production environment
+   URL — that is the canonical domain once CONFIG.domainsLive is true.
+   Change this one value if the Firebase hosting site moves; every OHS Suite
+   handoff (Open app, trial, register, join, session bar) reads it. */
+window.WEEHS_OHSMS_HOSTING = 'https://weehs-4eb28.web.app';
 
 window.WEEHS_PRODUCTS = [
   {
@@ -202,29 +219,45 @@ window.WEEHS_PRODUCTS = [
     mark: 'OS',
     logo: 'assets/img/logos/ohs-suite.svg',
     featured: true,
+    ribbon: 'OHSMS shell',
     domain: 'https://suite.weehs.org',
-    hosting: 'https://weehs-4eb28.web.app',
+    hosting: window.WEEHS_OHSMS_HOSTING,
+    // Same public contract as CONFIG.routes — OHSMS App.jsx already exposes these
+    // on the shell. Keep them here so a future path change is a product edit.
+    routes: { login: '/login', register: '/register-org', join: '/signup' },
     summary:
-      'Every OHS module under one login — fire equipment, LOTO, permits, audits and risk assessment in a single management system with one user list and one site hierarchy.',
+      'Opens the OHSMS shell — one login, one organisation, then individual operating modules launch from the portal according to the suite or à-la-carte subscription. New workspaces seed every module as a placeholder until it is activated.',
     features: [
-      'All WE EHS modules included, nothing switched off',
+      'Hands off to the OHSMS shell (not a standalone mini-app)',
       'One organisation, one user list, one site hierarchy',
-      'Cross-module dashboards and reporting',
-      'Admin approvals and role-based access',
-      'Single sign-in for the whole safety team'
+      'Modules launch from the shell once a suite or à-la-carte grant is on',
+      'Packaging suites: Core, Operations, Fire & Emergency, Compliance, Full',
+      'Placeholders until activated — entitlements live in OHSMS, not this site'
     ],
+    launchNote:
+      'Open app / trial / register / join go to the OHSMS shell at /login, /register-org and /signup.',
+    accessNote:
+      'These keys match the OHSMS module registry. This console is intent-only — OHSMS /platform activates suites and à-la-carte modules. New orgs start with every module as a placeholder.',
     modules: [
-      { id: 'fire', name: 'Fire equipment', note: 'Full Fire Marshal module inside the suite' },
-      { id: 'loto', name: 'Hazardous energy control', note: 'Full HECP LOTO module inside the suite' },
-      { id: 'permits', name: 'Permit to work', note: 'Full permit module inside the suite' },
-      { id: 'audit', name: 'ISO 45001 audit', note: 'Full audit and CAPA module inside the suite' },
-      { id: 'hira', name: 'Risk assessment', note: 'Full HIRA module inside the suite' },
-      { id: 'incidents', name: 'Incidents & investigation', note: 'Reporting, root cause and actions' },
-      { id: 'training', name: 'Training & competency', note: 'Matrix, records and expiry alerts' },
-      { id: 'dashboards', name: 'Cross-module dashboards', note: 'One view across every module' },
-      { id: 'users', name: 'Users, roles & sites', note: 'One user list and one site hierarchy' }
+      { id: 'incidents', name: 'Incidents & investigation', note: 'OHSMS · Core suite — placeholder until activated' },
+      { id: 'hira', name: 'Hazard identification & risk assessment', note: 'OHSMS · Core suite — placeholder until activated' },
+      { id: 'inspections', name: 'Inspections', note: 'OHSMS · Core suite — placeholder until activated' },
+      { id: 'training', name: 'Training & certifications', note: 'OHSMS · Core suite — placeholder until activated' },
+      { id: 'documents', name: 'Document library & SDS', note: 'OHSMS · Core suite — placeholder until activated' },
+      { id: 'actions', name: 'Central action tracker', note: 'OHSMS · Core suite — placeholder until activated' },
+      { id: 'ptw', name: 'Permit to work', note: 'OHSMS · Operations suite — placeholder until activated' },
+      { id: 'loto', name: 'Lockout / tagout', note: 'OHSMS · Operations suite — placeholder until activated' },
+      { id: 'weather', name: 'Site weather risk', note: 'OHSMS · Operations suite — placeholder until activated' },
+      { id: 'cctv', name: 'CCTV inventory & health', note: 'OHSMS · Operations suite — placeholder until activated' },
+      { id: 'equipment', name: 'Emergency equipment inventory', note: 'OHSMS · Fire & Emergency suite — placeholder until activated' },
+      { id: 'drills', name: 'Mock drills', note: 'OHSMS · Fire & Emergency suite — placeholder until activated' },
+      { id: 'emergency', name: 'Emergency response (FERP)', note: 'OHSMS · Fire & Emergency suite — placeholder until activated' },
+      { id: 'audit', name: 'Internal audit', note: 'OHSMS · Compliance suite — placeholder until activated' },
+      { id: 'committee', name: 'HSE committee meetings', note: 'OHSMS · Compliance suite — placeholder until activated' },
+      { id: 'objectives', name: 'Objectives & targets', note: 'OHSMS · Compliance suite — placeholder until activated' },
+      { id: 'stakeholder', name: 'Customer escalations & legal', note: 'OHSMS · Compliance suite — placeholder until activated' }
     ],
-    idealFor: 'Multi-site organisations standardising EHS',
+    idealFor: 'Multi-site organisations standardising EHS on one platform',
     screens: [
       { src: 'assets/screens/ohs-suite-register.png', caption: 'OHS Suite — register organization' }
     ]

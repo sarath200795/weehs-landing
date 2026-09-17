@@ -1,8 +1,10 @@
 # Deploying WE EHS on weehs.org
 
 Everything here needs access to the **weehs.org registrar/DNS**, the **Vercel account** that owns
-the five app projects, and the **Firebase project** `weehs-4eb28`. Nothing in this repo can do it
-for you — run the steps in order and the site plus all six apps end up on one domain.
+the five standalone app projects, and the **Firebase project** that hosts **OHSMS** (best-known
+live host `weehs-4eb28.web.app` — confirm in the OHSMS console if that project id has moved).
+Nothing in this repo can do it for you — run the steps in order and the site plus all six apps
+end up on one domain.
 
 ## 1. Target map
 
@@ -14,10 +16,14 @@ for you — run the steps in order and the site plus all six apps end up on one 
 | `permits.weehs.org` | Online Permit to Work | Vercel — `permit-to-work-two.vercel.app` |
 | `audit.weehs.org` | ISO 45001 Auditor | Vercel — `internal-audit-portal.vercel.app` |
 | `hira.weehs.org` | HIRA | Vercel — `hira-ruddy.vercel.app` |
-| `suite.weehs.org` | OHS Suite | Firebase Hosting — `weehs-4eb28.web.app` |
+| `suite.weehs.org` | OHS Suite → **OHSMS shell** | Firebase Hosting — `WEEHS_OHSMS_HOSTING` (`weehs-4eb28.web.app` today) |
 
 Change any name you dislike in `assets/js/products.js` (`domain` field) and in this table — the
 landing page reads it from there.
+
+OHS Suite is the public door into **OHSMS** (shell + per-module apps, shared Firebase). Landing
+CTAs append `/login`, `/register-org` and `/signup` to `suite.weehs.org` or, if `domainsLive` is
+false, to `WEEHS_OHSMS_HOSTING`. See README § Landing → OHSMS.
 
 ## 2. Source of truth: GitHub
 
@@ -75,7 +81,7 @@ hecp           CNAME   cname.vercel-dns.com.
 permits        CNAME   cname.vercel-dns.com.
 audit          CNAME   cname.vercel-dns.com.
 hira           CNAME   cname.vercel-dns.com.
-suite          A       (two values from the weehs-4eb28 Firebase console)
+suite          A       (two values from the OHSMS Firebase hosting console)
 suite          TXT     (verification value from that console)
 ```
 
@@ -105,9 +111,15 @@ Project → Settings → Domains → Add → `<sub>.weehs.org` → it verifies t
 certificate automatically. Set the weehs.org subdomain as the **production domain** so the
 `*.vercel.app` URL redirects to it.
 
-**Firebase — OHS Suite:**
-Hosting → Add custom domain → `suite.weehs.org` → add the TXT record it shows → wait for
-verification → add the two A records → certificate provisioning takes up to 24h.
+**Firebase — OHS Suite (OHSMS shell):**
+The suite subdomain must serve the **OHSMS** hosting site (the same Firebase project OHSMS
+deploys to), not a separate marketing page. Hosting → Add custom domain → `suite.weehs.org` →
+add the TXT record it shows → wait for verification → add the two A records → certificate
+provisioning takes up to 24h.
+
+If the OHSMS hosting origin is not `weehs-4eb28.web.app`, change `WEEHS_OHSMS_HOSTING` in
+`assets/js/products.js` so every landing handoff follows the live shell. OHSMS must keep
+`/login`, `/register-org` and `/signup` on that origin — those are the paths this site appends.
 
 ## 6. The part that breaks sign-in if you skip it
 
@@ -147,6 +159,9 @@ URLs to the weehs.org subdomains. Redeploy the landing page.
 - [ ] Register organisation works end to end on one app
 - [ ] Password reset email arrives and its link points at the weehs.org host
 - [ ] Landing page trial flow opens the right subdomain for each of the six products
+- [ ] OHS Suite **Open the live app** opens the OHSMS shell `/login` (not a 404 or a different product)
+- [ ] OHS Suite trial → new user → **Register organisation** opens OHSMS `/register-org`
+- [ ] OHS Suite trial → existing user → **Join your organisation** opens OHSMS `/signup`
 - [ ] `https://weehs.org/sitemap.xml` and `/robots.txt` return 200
 
 ## 9. Still placeholders

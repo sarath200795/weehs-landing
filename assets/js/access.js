@@ -386,6 +386,7 @@
         '</label>' +
       '</header>' +
       '<div class="app-mods">' +
+        (p.accessNote ? '<p class="app-note">' + esc(p.accessNote) + '</p>' : '') +
         '<div class="mods-bulk">' +
           '<button class="linkish" type="button" data-mods-all>Select all modules</button>' +
           '<button class="linkish" type="button" data-mods-none>Clear</button>' +
