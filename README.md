@@ -64,7 +64,7 @@ Both origins live in `assets/js/products.js`. One flag in `assets/js/app.js` dec
 link uses:
 
 ```js
-domainsLive: false   // false = WEEHS_OHSMS_HOSTING · true = WEEHS_OHSMS_DOMAIN (suite.weehs.org)
+domainsLive: true   // true = WEEHS_OHSMS_DOMAIN (suite.weehs.org) · false = WEEHS_OHSMS_HOSTING
 ```
 
 ```js
@@ -72,9 +72,9 @@ window.WEEHS_OHSMS_DOMAIN  = 'https://suite.weehs.org'
 window.WEEHS_OHSMS_HOSTING = 'https://weehs-4eb28.web.app'  // change this if Firebase hosting moves
 ```
 
-Leave `domainsLive` `false` until `suite.weehs.org` serves HTTPS, then flip it — see
-[DEPLOY.md](DEPLOY.md). OHSMS `deploy.yml` already names `https://suite.weehs.org` as the
-production environment URL.
+`domainsLive` is **true** because `https://suite.weehs.org` serves HTTPS today. Set it `false`
+only if that domain is down and CTAs must use Firebase Hosting — see [DEPLOY.md](DEPLOY.md).
+OHSMS `deploy.yml` already names `https://suite.weehs.org` as the production environment URL.
 
 **OHSMS must keep serving** `/login`, `/register-org` and `/signup` on the shell (already mounted
 in `src/App.jsx`). It does **not** currently read `?module=` on `/login`. Open-app links therefore
@@ -161,7 +161,7 @@ var CONFIG = {
   salesEmail: 'info@weehs.org',
   salesPhone: '+91 74570 06625',
   carouselMs: 5000,
-  domainsLive: false,
+  domainsLive: true,
   routes: { login: '/login', register: '/register-org', join: '/signup' }
 };
 ```
