@@ -1,23 +1,32 @@
 # Deploying WE EHS on weehs.org
 
-Everything here needs access to the **weehs.org registrar/DNS**, the **Vercel account** that owns
-the five app projects, and the **Firebase project** `weehs-4eb28`. Nothing in this repo can do it
-for you — run the steps in order and the site plus all six apps end up on one domain.
+Landing CTAs all open **OHSMS** on `suite.weehs.org` (or `WEEHS_OHSMS_HOSTING` until that
+domain is live). You need the **weehs.org registrar/DNS** and the **Firebase project that
+hosts OHSMS** (best-known live host `weehs-4eb28.web.app`). The old per-product Vercel apps
+are no longer destinations from this site.
 
 ## 1. Target map
 
-| Host | Serves | Platform today |
+| Host | Serves | Platform |
 | --- | --- | --- |
 | `weehs.org` + `www.weehs.org` | this landing page | GitHub Pages or Firebase — see §3 |
-| `fire-marshal.weehs.org` | Fire Marshal | Vercel — `fire-marshal.vercel.app` |
-| `hecp.weehs.org` | HECP LOTO | Vercel — `hecp-loto.vercel.app` |
-| `permits.weehs.org` | Online Permit to Work | Vercel — `permit-to-work-two.vercel.app` |
-| `audit.weehs.org` | ISO 45001 Auditor | Vercel — `internal-audit-portal.vercel.app` |
-| `hira.weehs.org` | HIRA | Vercel — `hira-ruddy.vercel.app` |
-| `suite.weehs.org` | OHS Suite | Firebase Hosting — `weehs-4eb28.web.app` |
+| `suite.weehs.org` | **OHSMS** (shell + module apps) | Firebase Hosting — `WEEHS_OHSMS_HOSTING` (`weehs-4eb28.web.app` today) |
 
-Change any name you dislike in `assets/js/products.js` (`domain` field) and in this table — the
-landing page reads it from there.
+Landing does not send visitors to `fire-marshal.weehs.org`, `hecp.weehs.org`, `permits.weehs.org`,
+`audit.weehs.org`, `hira.weehs.org`, or the old `*.vercel.app` hosts. Those five cards deep-link
+OHSMS module prefixes on `suite.weehs.org`:
+
+| Card | OHSMS key | Path |
+| --- | --- | --- |
+| Fire Marshal | `equipment` | `/equipment` |
+| HECP LOTO | `loto` | `/loto` |
+| Online Permit to Work | `ptw` | `/permits` |
+| ISO 45001 Auditor | `audit` | `/audit` |
+| HIRA | `hira` | `/hira` |
+| OHS Suite | shell | `/login` · `/register-org` · `/signup` |
+
+See README § Landing → OHSMS. If the Firebase hosting origin is not `weehs-4eb28.web.app`,
+change `WEEHS_OHSMS_HOSTING` in `assets/js/products.js`.
 
 ## 2. Source of truth: GitHub
 
@@ -67,15 +76,10 @@ Either way, keep the redirect direction (`www` → apex, or the reverse) consist
 
 ## 4. DNS records at the registrar
 
-**The six app subdomains** — five on Vercel, one on Firebase:
+**OHSMS (required for every product CTA):**
 
 ```
-fire-marshal   CNAME   cname.vercel-dns.com.
-hecp           CNAME   cname.vercel-dns.com.
-permits        CNAME   cname.vercel-dns.com.
-audit          CNAME   cname.vercel-dns.com.
-hira           CNAME   cname.vercel-dns.com.
-suite          A       (two values from the weehs-4eb28 Firebase console)
+suite          A       (two values from the OHSMS Firebase hosting console)
 suite          TXT     (verification value from that console)
 ```
 
@@ -98,56 +102,56 @@ you — they are issued per project, so do not copy values from anywhere else.
 
 Keep TTL low (300s) during the cutover, raise it afterwards.
 
-## 5. Attach the domain in each platform
+Legacy `fire-marshal` / `hecp` / `permits` / `audit` / `hira` CNAMEs to Vercel are unused by
+this landing page. Keep them only if printed QR codes still encode those hosts.
 
-**Vercel — once per project** (5 projects):
-Project → Settings → Domains → Add → `<sub>.weehs.org` → it verifies the CNAME and issues the
-certificate automatically. Set the weehs.org subdomain as the **production domain** so the
-`*.vercel.app` URL redirects to it.
+## 5. Attach suite.weehs.org on the OHSMS Firebase project
 
-**Firebase — OHS Suite:**
-Hosting → Add custom domain → `suite.weehs.org` → add the TXT record it shows → wait for
-verification → add the two A records → certificate provisioning takes up to 24h.
+The suite subdomain must serve **OHSMS** (the same Firebase project OHSMS deploys to).
+Hosting → Add custom domain → `suite.weehs.org` → TXT → A records → certificate (up to 24h).
+
+OHSMS must keep `/login`, `/register-org` and `/signup` on the shell, and the module prefixes
+`/equipment`, `/loto`, `/permits`, `/audit`, `/hira` (registry keys `equipment`, `loto`, `ptw`,
+`audit`, `hira`). OHSMS does not currently honour `?module=` on `/login`; Open-app links hit
+the module path and rely on `ProtectedRoute` to bounce to `/login`.
 
 ## 6. The part that breaks sign-in if you skip it
 
-Adding a domain is not enough — the apps' auth and API layers only accept known origins:
-
-- **Firebase Auth** (used by the OHS Suite, and by any app on Firebase Auth):
-  Authentication → Settings → **Authorized domains** → add `suite.weehs.org` and every other
-  weehs.org subdomain that talks to that Firebase project. Sign-in fails with
-  `auth/unauthorized-domain` until you do.
-- **Firestore/Storage rules and any API CORS allowlist**: add the new origins.
-- **OAuth providers** (Google/Microsoft sign-in, if enabled): add
-  `https://<sub>.weehs.org/__/auth/handler` to the provider's authorized redirect URIs.
-- **Email templates / password reset links**: point them at the new host.
-- **Environment variables** holding absolute URLs (`NEXT_PUBLIC_SITE_URL`, callback URLs,
-  QR-code base URLs) — the QR codes on extinguishers and LOTO tags encode a URL, so decide whether
-  old codes must keep resolving. If they do, keep the `*.vercel.app` host alive as a redirect
-  rather than removing it.
+- **Firebase Auth** (OHSMS): Authentication → Settings → **Authorized domains** → add
+  `suite.weehs.org`. Sign-in fails with `auth/unauthorized-domain` until you do. Landing
+  (`weehs.org`) does not run Auth and does not need to be on that list.
+- **App Check / reCAPTCHA** domain list: include `suite.weehs.org`.
+- **OAuth providers** (Google/Microsoft, if enabled):
+  `https://suite.weehs.org/__/auth/handler`.
+- **Email templates / password reset links**: the suite host.
+- **QR codes** printed for extinguishers and LOTO tags encode a URL. If old codes used
+  `*.vercel.app` or a product subdomain, keep those hosts as redirects rather than removing them.
 
 ## 7. Flip the landing page over
 
-Once `https://fire-marshal.weehs.org` (and the rest) load over HTTPS, edit
-`assets/js/app.js`:
-
-```js
-domainsLive: true,
-```
-
-Every card link, trial handoff, session bar and carousel URL label switches from the platform
-URLs to the weehs.org subdomains. Redeploy the landing page.
+Once `https://suite.weehs.org/login` loads over HTTPS, `domainsLive: true` in
+`assets/js/app.js` (already the current setting) sends every card to that host. `false` uses
+`WEEHS_OHSMS_HOSTING` instead. Redeploy the landing page after changing it.
 
 ## 8. Verify
 
 - [ ] `https://weehs.org` and `https://www.weehs.org` both resolve, one redirects to the other
-- [ ] All six subdomains load over HTTPS with a valid certificate
-- [ ] Old `*.vercel.app` / `*.web.app` URLs redirect (or are intentionally kept alive for QR codes)
-- [ ] Sign in works on each subdomain — including Google/Microsoft sign-in if enabled
-- [ ] Register organisation works end to end on one app
-- [ ] Password reset email arrives and its link points at the weehs.org host
-- [ ] Landing page trial flow opens the right subdomain for each of the six products
+- [ ] `https://suite.weehs.org` loads OHSMS over HTTPS
+- [ ] Sign in works on `suite.weehs.org` — including Google/Microsoft if enabled
+- [ ] Register organisation works end to end (`/register-org`)
+- [ ] Password reset email link points at `suite.weehs.org`
+- [ ] **OHS Suite** Open the live app → `{base}/login`
+- [ ] **OHS Suite** trial → new user → `{base}/register-org`; existing → Join `{base}/signup`
+- [ ] **Fire Marshal** Open the live app → `{base}/equipment`
+- [ ] **HECP LOTO** Open the live app → `{base}/loto`
+- [ ] **Permit to Work** Open the live app → `{base}/permits`
+- [ ] **ISO 45001 Auditor** Open the live app → `{base}/audit`
+- [ ] **HIRA** Open the live app → `{base}/hira`
+- [ ] Each of the five module cards’ trial Sign in opens that same module path (or shell `/login` then the module); Register / Join still `{base}/register-org` and `{base}/signup`
+- [ ] No card “Open the live app” href contains `vercel.app`
 - [ ] `https://weehs.org/sitemap.xml` and `/robots.txt` return 200
+
+`{base}` is `https://suite.weehs.org` when `domainsLive` is true, else `WEEHS_OHSMS_HOSTING`.
 
 ## 9. Still placeholders
 

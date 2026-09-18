@@ -41,35 +41,78 @@ npx firebase-tools deploy --only hosting --project weehs-org-site
 Pick one of the two to serve `weehs.org` — [DEPLOY.md](DEPLOY.md) §3 covers both and lists the
 exact DNS records for each.
 
-## The products, and the domain switch
+## The products, and the OHSMS origin
 
-| Product | weehs.org subdomain (target) | Platform URL (today) |
-| --- | --- | --- |
-| Fire Marshal | `fire-marshal.weehs.org` | https://fire-marshal.vercel.app |
-| HECP LOTO | `hecp.weehs.org` | https://hecp-loto.vercel.app |
-| Online Permit to Work | `permits.weehs.org` | https://permit-to-work-two.vercel.app |
-| ISO 45001 Auditor | `audit.weehs.org` | https://internal-audit-portal.vercel.app |
-| HIRA | `hira.weehs.org` | https://hira-ruddy.vercel.app |
-| OHS Suite | `suite.weehs.org` | https://weehs-4eb28.web.app |
+Every card opens **OHSMS** ([sarath200795/OHSMS](https://github.com/sarath200795/OHSMS)) — one
+Firebase project, one organisation, one login. There are no live Vercel destinations on this
+site anymore.
 
-Both URLs live on each product in `assets/js/products.js` (`domain` and `hosting`). One flag in
-`assets/js/app.js` decides which one every link uses:
+| Product | OHSMS key | Open-app path | Auth (shell) |
+| --- | --- | --- | --- |
+| Fire Marshal | `equipment` | `/equipment` | `/login` · `/register-org` · `/signup` |
+| HECP LOTO | `loto` | `/loto` | same |
+| Online Permit to Work | `ptw` | `/permits` | same |
+| ISO 45001 Auditor | `audit` | `/audit` | same |
+| HIRA | `hira` | `/hira` | same |
+| OHS Suite (shell) | — | `/login` | same |
+
+Keys and prefixes come from OHSMS `src/shared/modules/registry.js` and `apps.js` (`docs/APPS.md`).
+Fire Marshal maps to **Emergency Equipment** (`equipment` / `/equipment`), not mock drills
+(`/mock-drills`, key `drills`). Permit to Work is registry key `ptw` at path `/permits`.
+
+Both origins live in `assets/js/products.js`. One flag in `assets/js/app.js` decides which every
+link uses:
 
 ```js
-domainsLive: false   // false = platform URLs · true = weehs.org subdomains
+domainsLive: true   // true = WEEHS_OHSMS_DOMAIN (suite.weehs.org) · false = WEEHS_OHSMS_HOSTING
 ```
 
-Leave it `false` until DNS resolves and HTTPS is live, then flip it and redeploy — see
-[DEPLOY.md](DEPLOY.md) for the full cutover, including the Firebase Auth authorized-domains step
-that silently breaks sign-in if skipped.
+```js
+window.WEEHS_OHSMS_DOMAIN  = 'https://suite.weehs.org'
+window.WEEHS_OHSMS_HOSTING = 'https://weehs-4eb28.web.app'  // change this if Firebase hosting moves
+```
 
-Every app shares the same routes, which is what the landing page links into:
+`domainsLive` is **true** because `https://suite.weehs.org` serves HTTPS today. Set it `false`
+only if that domain is down and CTAs must use Firebase Hosting — see [DEPLOY.md](DEPLOY.md).
+OHSMS `deploy.yml` already names `https://suite.weehs.org` as the production environment URL.
 
-- `/login` — sign in
-- `/register-org` — create a new organisation (first account becomes admin)
-- `/signup` — join an organisation that already exists
+**OHSMS must keep serving** `/login`, `/register-org` and `/signup` on the shell (already mounted
+in `src/App.jsx`). It does **not** currently read `?module=` on `/login`. Open-app links therefore
+go to the module prefix; `ProtectedRoute` bounces unsigned-in visitors to `/login` and, on the
+combined SPA, returns them to that path via `location.state.from`. Split module apps
+(`/apps/<key>/`) should keep that return — a parallel OHSMS follow-up.
 
-Those routes are set in `CONFIG.routes` in `assets/js/app.js`.
+New organisations seed every registry module as a **placeholder**. Suites (Core, Operations,
+Fire & Emergency, Compliance, Full) and à-la-carte grants live in OHSMS on `/platform`. This
+landing site does not invent a second entitlement system; `access.html` is intent-only.
+
+Historical standalone hosts (not used by landing CTAs): `fire-marshal.vercel.app`,
+`hecp-loto.vercel.app`, `permit-to-work-two.vercel.app`, `internal-audit-portal.vercel.app`,
+`hira-ruddy.vercel.app`.
+
+## Landing → OHSMS
+
+This site is the public entry. All six cards, header trial, Open the live app, trial handoff,
+and the session bar open the **same OHSMS origin**.
+
+| What | Where |
+| --- | --- |
+| Canonical domain | `https://suite.weehs.org` |
+| Firebase Hosting (today) | `window.WEEHS_OHSMS_HOSTING` |
+| Sign in (shell) | `{base}/login` |
+| Register organisation | `{base}/register-org` (seeds module placeholders) |
+| Join an existing org | `{base}/signup` |
+| Open Fire Marshal | `{base}/equipment` |
+| Open HECP LOTO | `{base}/loto` |
+| Open Permit to Work | `{base}/permits` |
+| Open ISO 45001 Auditor | `{base}/audit` |
+| Open HIRA | `{base}/hira` |
+| Open OHS Suite | `{base}/login` |
+
+`{base}` is `suite.weehs.org` when `domainsLive` is true, otherwise `WEEHS_OHSMS_HOSTING`.
+
+The public OHSMS repo does **not** commit the production Firebase project id. If hosting moves,
+change **only** `WEEHS_OHSMS_HOSTING`.
 
 ## What the page does
 
@@ -80,17 +123,19 @@ Those routes are set in `CONFIG.routes` in `assets/js/app.js`.
 **existing user or new user**:
 
 - *Existing user* → work email + module → we record the lead, then hand off with two
-  buttons: **Sign in** (`/login`) and **Join your organisation** (`/signup`).
+  buttons: **Sign in** (OHSMS module path, or shell `/login` for the suite) and
+  **Join your organisation** (`/signup`).
 - *New user* → organisation details (name, industry, employees, sites, country), the primary
   contact who becomes the admin, the product to trial, starting-data preference and a free-text
   "anything specific you need?" box → we record the lead and hand off to **Register organisation**
-  (`/register-org`), where they set their own password.
+  (`/register-org`), where they set their own password. After create, OHSMS seeds every module
+  as a placeholder.
 
 No password is ever typed on the landing page — that happens on the application itself.
 
 **Trial session bar** — after either path, a bar pins to the bottom showing product,
-organisation and days remaining, with *Open workspace* (opens the app's sign-in) and
-*Log out & give feedback*. It survives a page reload (localStorage).
+organisation and days remaining, with *Open workspace* (OHSMS module path, or shell `/login`
+for the suite) and *Log out & give feedback*. It survives a page reload (localStorage).
 
 **Feedback on log out** — the feedback form asks for a usefulness rating, what worked,
 **what feature is missing** (required), how important it is, and a reply email. Submitting
@@ -116,7 +161,7 @@ var CONFIG = {
   salesEmail: 'info@weehs.org',
   salesPhone: '+91 74570 06625',
   carouselMs: 5000,
-  domainsLive: false,
+  domainsLive: true,
   routes: { login: '/login', register: '/register-org', join: '/signup' }
 };
 ```
@@ -142,9 +187,9 @@ inside it**, and **how long has each account existed**.
   created and it ticks over at midnight, not at the hour they signed up. Trial accounts also
   show days remaining and flip to *Expired* on their own; back-date the created date on an
   account that existed before you added it here.
-- **Apps and modules.** Each product in `products.js` carries a `modules` array. The console
-  builds one block per app with a master switch plus a checkbox per module, so an account can
-  have Permit to Work but only hot work and approvals, for example.
+- **Apps and modules.** Each product in `products.js` carries a `modules` array whose ids match
+  OHSMS registry keys. The console builds one block per card with a master switch plus a checkbox
+  per module. That is intent only — live grants are suites / à-la-carte inside OHSMS.
 - **Accounts come from two places.** *Import trial sign-ups* turns the `weehs_signup` records
   the landing page already captured into accounts, dated from when the form was submitted; a
   second product for the same email is added to that account instead of creating a duplicate.
@@ -204,14 +249,17 @@ Edit `assets/js/products.js`:
   id: 'incident-manager',        // lookup key
   name: 'Incident Manager',
   tagline: 'Reporting, investigation and CAPA',
-  color: '#B45309',              // accent used across the card and modal
-  mark: 'IM',                    // two-letter badge
-  domain: 'https://incident-manager.weehs.org',
-  hosting: 'https://incident-manager.example.app',
+  color: '#B45309',
+  mark: 'IM',
+  domain: window.WEEHS_OHSMS_DOMAIN,
+  hosting: window.WEEHS_OHSMS_HOSTING,
+  ohsmsKey: 'incidents',         // OHSMS registry key
+  modulePath: '/incidents',      // Open app / session bar
+  routes: { login: '/login', register: '/register-org', join: '/signup' },
   summary: '…',
   features: ['…'],
-  modules: [                     // what access.html can grant or withhold
-    { id: 'register', name: 'Incident register', note: 'Report and log incidents' }
+  modules: [                     // OHSMS keys; access.html is intent-only
+    { id: 'incidents', name: 'Incidents & investigation', note: 'OHSMS · Core suite' }
   ],
   idealFor: '…',
   screens: [{ src: 'assets/screens/incident-dashboard.png', caption: 'Incident Manager — dashboard' }]

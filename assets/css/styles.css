@@ -454,6 +454,9 @@ a { color: var(--brand-dark); text-decoration-thickness: 1px; text-underline-off
 }
 .product-peek:hover { color: var(--accent); }
 .product-host { font-weight: 500; word-break: break-all; }
+.product-launch {
+  margin: .45rem 0 0; font-size: .78rem; line-height: 1.45; color: var(--muted);
+}
 
 @media (hover: hover) and (pointer: fine) {
   .product-card:hover {

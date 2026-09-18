@@ -36,11 +36,13 @@
     salesEmail: 'info@weehs.org',
     salesPhone: '+91 74570 06625',
     carouselMs: 5000,
-    // Flip to true once the weehs.org subdomains resolve and serve HTTPS.
-    // false  -> links use each product's current platform URL (hosting)
-    // true   -> links use its weehs.org subdomain (domain)
+    // Flip to true once suite.weehs.org serves HTTPS for OHSMS.
+    // false  -> WEEHS_OHSMS_HOSTING (Firebase)
+    // true   -> WEEHS_OHSMS_DOMAIN (suite.weehs.org)
+    // Every product shares that origin; modulePath is appended for Open app.
     domainsLive: true,
-    // routes every WE EHS app shares, appended to the product's base URL
+    // Public contract the OHSMS shell must expose. Module cards add modulePath
+    // for Open app / session bar; auth still uses these three.
     routes: { login: '/login', register: '/register-org', join: '/signup' }
   };
 
@@ -51,13 +53,24 @@
     return (useDomain ? p.domain : p.hosting) || p.domain || p.hosting || '';
   }
 
+  function productRoutes(p) {
+    return (p && p.routes) || CONFIG.routes;
+  }
+
   // Full URL: appLink(product, 'register') -> https://…/register-org
+  // route 'open' is the module deep-link (or shell /login for OHS Suite).
   function appLink(p, route) {
-    return appBase(p) + (CONFIG.routes[route] || CONFIG.routes.login);
+    if (route === 'open') {
+      return appBase(p) + ((p && p.modulePath) || CONFIG.routes.login);
+    }
+    var routes = productRoutes(p);
+    return appBase(p) + (routes[route] || CONFIG.routes[route] || CONFIG.routes.login);
   }
 
   function appHost(p) {
-    return appBase(p).replace(/^https?:\/\//, '');
+    var host = appBase(p).replace(/^https?:\/\//, '');
+    if (p && p.modulePath) return host + p.modulePath;
+    return host;
   }
 
   var PRODUCTS = window.WEEHS_PRODUCTS || [];
@@ -294,7 +307,7 @@
     grid.insertAdjacentHTML('beforeend', PRODUCTS.map(function (p) {
       return '' +
         '<article class="product-card' + (p.featured ? ' is-featured' : '') + '" style="--accent:' + esc(p.color) + '">' +
-          (p.featured ? '<span class="ribbon">All modules</span>' : '') +
+          (p.featured ? '<span class="ribbon">' + esc(p.ribbon || 'All modules') + '</span>' : '') +
           '<div class="product-head">' +
             productMarkHtml(p) +
             '<div><h3>' + esc(p.name) + '</h3><p class="product-tagline">' + esc(p.tagline) + '</p></div>' +
@@ -308,9 +321,10 @@
             '<button class="btn btn-primary" type="button" data-open-trial="' + esc(p.id) + '">Start free trial</button>' +
             '<button class="btn btn-outline" type="button" data-open-enquiry="' + esc(p.id) + '">Enquire</button>' +
           '</div>' +
-          '<a class="product-peek" href="' + esc(appLink(p, 'login')) + '" target="_blank" rel="noopener">' +
+          '<a class="product-peek" href="' + esc(appLink(p, 'open')) + '" target="_blank" rel="noopener">' +
             'Open the live app &#8599; <span class="product-host">' + esc(appHost(p)) + '</span>' +
           '</a>' +
+          (p.launchNote ? '<p class="product-launch">' + esc(p.launchNote) + '</p>' : '') +
         '</article>';
     }).join(''));
 
@@ -477,15 +491,21 @@
   }
 
   function stepSignedIn(p, data) {
+    var openUrl = appLink(p, 'open');
+    var loginUrl = appLink(p, 'login');
+    var moduleHint = p.modulePath
+      ? ' Unsigned-in visitors are bounced to the OHSMS shell <strong>/login</strong>, then (on the combined app) returned to <code>' + esc(p.modulePath) + '</code>.'
+      : '';
     openModal(
-      modalHead(p, 'Opening ' + esc(p.name), 'Sign in with your work email on the ' + esc(p.name) + ' portal.') +
+      modalHead(p, 'Opening ' + esc(p.name), 'Sign in with your work email on the OHSMS ' + esc(p.name) + ' portal.') +
       '<div class="success-box">' +
-        '<p class="success-line"><span>Application</span><code>' + esc(appLink(p, 'login')) + '</code></p>' +
+        '<p class="success-line"><span>Application</span><code>' + esc(openUrl) + '</code></p>' +
+        '<p class="success-line"><span>Shell sign-in</span><code>' + esc(loginUrl) + '</code></p>' +
         '<p class="success-line"><span>Signing in as</span>' + esc(data.email) + '</p>' +
       '</div>' +
-      '<p class="hint">New to your company workspace but your colleagues already use it? Use <strong>Join your organisation</strong> — an admin approves your request.</p>' +
+      '<p class="hint">New to your company workspace but your colleagues already use it? Use <strong>Join your organisation</strong> — an admin approves your request.' + moduleHint + '</p>' +
       '<div class="modal-actions">' +
-        '<a class="btn btn-primary btn-lg" href="' + esc(appLink(p, 'login')) + '" target="_blank" rel="noopener" data-autofocus>Sign in to ' + esc(p.name) + ' &#8599;</a>' +
+        '<a class="btn btn-primary btn-lg" href="' + esc(openUrl) + '" target="_blank" rel="noopener" data-autofocus>Sign in to ' + esc(p.name) + ' &#8599;</a>' +
         '<a class="btn btn-outline btn-lg" href="' + esc(appLink(p, 'join')) + '" target="_blank" rel="noopener">Join your organisation</a>' +
       '</div>'
     );
@@ -574,6 +594,9 @@
         ': the first account you create there becomes the organisation admin.') +
       '<div class="success-box">' +
         '<p class="success-line"><span>Register at</span><code>' + esc(appLink(p, 'register')) + '</code></p>' +
+        (p.modulePath
+          ? '<p class="success-line"><span>Then open</span><code>' + esc(appLink(p, 'open')) + '</code></p>'
+          : '') +
         '<p class="success-line"><span>Admin</span>' + esc(data.contactName) + ' · ' + esc(data.email) + '</p>' +
         '<p class="success-line"><span>Trial ends</span>' + esc(fmtDate(ends)) + '</p>' +
         '<p class="success-line"><span>Reference</span><code>' + esc(ref) + '</code></p>' +
@@ -581,7 +604,7 @@
       (data.requirements
         ? '<p class="hint hint-ok">Noted your requirement: “' + esc(data.requirements) + '”. Our product team will come back to you on it.</p>'
         : '') +
-      '<p class="hint">You will set your own password on the ' + esc(p.name) + ' registration page. Colleagues join later with <strong>Join your organisation</strong> and you approve them.</p>' +
+      '<p class="hint">You will set your own password on the OHSMS registration page. New organisations seed every module as a placeholder — a suite or à-la-carte grant in OHSMS turns them on. Colleagues join later with <strong>Join your organisation</strong> and you approve them.</p>' +
       '<div class="modal-actions">' +
         '<a class="btn btn-primary btn-lg" href="' + esc(appLink(p, 'register')) + '" target="_blank" rel="noopener" data-autofocus>Register organisation in ' + esc(p.name) + ' &#8599;</a>' +
         '<button class="btn btn-outline btn-lg" type="button" data-modal-close>Explore other products</button>' +
@@ -795,7 +818,7 @@
       var openWs = e.target.closest('[data-session-open]');
       if (openWs && session) {
         var wsProduct = byId[session.productId] || { hosting: session.app, domain: session.app };
-        window.open(appLink(wsProduct, 'login'), '_blank', 'noopener');
+        window.open(appLink(wsProduct, 'open'), '_blank', 'noopener');
         return;
       }
 
@@ -822,6 +845,8 @@
   // Console helper for whoever is collecting leads before a backend exists.
   window.WEEHS = {
     config: CONFIG,
+    ohsmsHosting: window.WEEHS_OHSMS_HOSTING || '',
+    ohsmsDomain: window.WEEHS_OHSMS_DOMAIN || '',
     leads: function () {
       return {
         signups: readStore('weehs_signup'),

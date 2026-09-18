@@ -2,25 +2,46 @@
    Single source of truth for the cards, the trial modal, the enquiry dropdown,
    the hero carousel and the rolling strip.
 
-   Each product carries two URLs:
-     domain   the weehs.org subdomain it will be served from (canonical)
-     hosting  the platform URL it runs on today (Vercel / Firebase)
+   All six cards open the same OHSMS deployment (github.com/sarath200795/OHSMS):
+     domain   https://suite.weehs.org   (canonical; used when CONFIG.domainsLive)
+     hosting  WEEHS_OHSMS_HOSTING       (Firebase Hosting until that flag is on)
 
-   Links use `hosting` until DNS is cut over, then flip CONFIG.domainsLive to
-   true in app.js and everything switches to the weehs.org subdomains.
+   Do not point CTAs at the old per-product Vercel hosts (fire-marshal.vercel.app,
+   hecp-loto.vercel.app, permit-to-work-two.vercel.app, internal-audit-portal.vercel.app,
+   hira-ruddy.vercel.app). Those were standalone apps; landing no longer uses them.
 
-   Every app follows the same routes:
+   Shared shell routes (CONFIG.routes in app.js) — OHSMS App.jsx already mounts them:
      /login         sign in
-     /register-org  create a new organisation (the first account becomes admin)
+     /register-org  create a new organisation (first account becomes admin)
      /signup        join an organisation that already exists
 
-   modules[] is the list of things inside each app that access can be granted or
-   withheld on, one entry per module. access.html reads it to build the per-user
-   permission grid, so adding a module there makes it regulatable immediately.
+   Module cards also set modulePath / ohsmsKey from the OHSMS registry
+   (src/shared/modules/registry.js) and apps.js pathPrefix (docs/APPS.md, PR 57):
+     Fire Marshal          equipment  /equipment
+     HECP LOTO             loto       /loto
+     Online Permit to Work ptw        /permits
+     ISO 45001 Auditor     audit      /audit
+     HIRA                  hira       /hira
+     OHS Suite             (shell)    /login · /register-org · /signup
 
-   screens[] are real screenshots taken from those apps. Replace the files in
-   assets/screens/ (same names) to refresh them, or add entries for in-app
-   screens once we have captures that are safe to publish. */
+   OHSMS does not currently read a ?module= query on /login. Open-app links go
+   straight to the module prefix; ProtectedRoute bounces unsigned-in visitors
+   to /login and (on the combined SPA) returns them to that path. A parallel
+   OHSMS change should keep that return working for split module apps.
+
+   New organisations seed every registry module as a placeholder. Suites /
+   à-la-carte grants live in OHSMS on /platform — this site does not enforce them.
+
+   modules[] feeds access.html (intent-only). Keys match the OHSMS registry. */
+
+/* Live Firebase Hosting origin for OHSMS.
+   Public OHSMS docs do not publish the production project id (.firebaserc is
+   gitignored; docs/PRODUCTION.md is private). This is the best-known live
+   host. Canonical public domain is suite.weehs.org (OHSMS deploy.yml).
+   Change WEEHS_OHSMS_HOSTING if the Firebase hosting site moves — every card
+   reads it. */
+window.WEEHS_OHSMS_DOMAIN = 'https://suite.weehs.org';
+window.WEEHS_OHSMS_HOSTING = 'https://weehs-4eb28.web.app';
 
 window.WEEHS_PRODUCTS = [
   {
@@ -30,25 +51,26 @@ window.WEEHS_PRODUCTS = [
     color: '#E11D2E',
     mark: 'FM',
     logo: 'assets/img/logos/fire-marshal.svg',
-    domain: 'https://fire-marshal.weehs.org',
-    hosting: 'https://fire-marshal.vercel.app',
+    domain: window.WEEHS_OHSMS_DOMAIN,
+    hosting: window.WEEHS_OHSMS_HOSTING,
+    ohsmsKey: 'equipment',
+    modulePath: '/equipment',
+    routes: { login: '/login', register: '/register-org', join: '/signup' },
     summary:
-      'Track, inspect and refill fire safety equipment across all your sites — with QR codes, defect workflows and real-time dashboards.',
+      'Track, inspect and refill fire safety equipment across all your sites — as the OHSMS Emergency Equipment module, with one organisation shared with every other module.',
     features: [
       'QR-tracked extinguishers, publicly scannable',
       'Inspection rounds, refill and hydro-test scheduling',
       'Defect capture with photo evidence and assignment',
-      'Org-scoped access with admin approvals',
+      'Same login as the rest of OHSMS — other modules stay placeholders until a suite or à-la-carte grant is on',
       'Live, colour-coded compliance dashboard'
     ],
+    launchNote:
+      'Open app → OHSMS /equipment (registry key equipment, Fire & Emergency suite). Register / join use the shell /register-org and /signup. Mock drills live at /mock-drills (key drills) and are not this card’s target.',
+    accessNote:
+      'Maps to OHSMS equipment. Intent-only here — OHSMS /platform activates the Fire & Emergency suite or this key à-la-carte. New orgs start with it as a placeholder.',
     modules: [
-      { id: 'equipment', name: 'Equipment register', note: 'Extinguishers, hydrants, hose reels, alarms' },
-      { id: 'qr', name: 'QR codes & scanning', note: 'Generate, print and scan equipment tags' },
-      { id: 'inspections', name: 'Inspection rounds', note: 'Monthly / quarterly round scheduling and sign-off' },
-      { id: 'refill', name: 'Refill & hydro-test', note: 'Due dates, vendor jobs and certificates' },
-      { id: 'defects', name: 'Defects & work orders', note: 'Photo evidence, assignment and closure' },
-      { id: 'reports', name: 'Dashboards & reports', note: 'Compliance %, overdue and site roll-ups' },
-      { id: 'admin', name: 'Users, sites & approvals', note: 'Invite, approve and assign roles' }
+      { id: 'equipment', name: 'Emergency equipment inventory', note: 'OHSMS key equipment · /equipment · Fire & Emergency suite' }
     ],
     idealFor: 'Fire officers, site EHS teams, facility managers',
     screens: [
@@ -64,25 +86,26 @@ window.WEEHS_PRODUCTS = [
     color: '#B7791F',
     mark: 'HE',
     logo: 'assets/img/logos/hecp.svg',
-    domain: 'https://hecp.weehs.org',
-    hosting: 'https://hecp-loto.vercel.app',
+    domain: window.WEEHS_OHSMS_DOMAIN,
+    hosting: window.WEEHS_OHSMS_HOSTING,
+    ohsmsKey: 'loto',
+    modulePath: '/loto',
+    routes: { login: '/login', register: '/register-org', join: '/signup' },
     summary:
-      'Build LOTO procedures, generate energy tags & QR codes, and track every isolation point across your sites — in one auditable system.',
+      'Build LOTO procedures, generate energy tags & QR codes, and track every isolation point — as the OHSMS Lockout / Tagout module in the same organisation as the rest of the platform.',
     features: [
       'QR-tagged energy control procedures, publicly scannable',
       'Isolation point register by machine and energy source',
       'Energy tag generation for the shop floor',
-      'Org-scoped access with admin approvals',
+      'Same login as the rest of OHSMS — other modules stay placeholders until a suite or à-la-carte grant is on',
       'Live, colour-coded LOTO register'
     ],
+    launchNote:
+      'Open app → OHSMS /loto (registry key loto, Operations suite). Register / join use the shell /register-org and /signup.',
+    accessNote:
+      'Maps to OHSMS loto. Intent-only here — OHSMS /platform activates the Operations suite or this key à-la-carte. New orgs start with it as a placeholder.',
     modules: [
-      { id: 'procedures', name: 'LOTO procedures', note: 'Write, version and publish energy control procedures' },
-      { id: 'isolation', name: 'Isolation point register', note: 'Points by machine, energy source and location' },
-      { id: 'tags', name: 'Energy tag generation', note: 'Printable shop-floor tags' },
-      { id: 'qr', name: 'QR codes & scanning', note: 'Publicly scannable procedure codes' },
-      { id: 'executions', name: 'Isolation execution log', note: 'Who isolated what, when and de-isolation' },
-      { id: 'reports', name: 'Dashboards & reports', note: 'Live LOTO register and overdue reviews' },
-      { id: 'admin', name: 'Users, sites & approvals', note: 'Invite, approve and assign roles' }
+      { id: 'loto', name: 'Lockout / tagout', note: 'OHSMS key loto · /loto · Operations suite' }
     ],
     idealFor: 'Maintenance, engineering and plant safety teams',
     screens: [
@@ -99,27 +122,26 @@ window.WEEHS_PRODUCTS = [
     color: '#F97316',
     mark: 'PW',
     logo: 'assets/img/logos/permit-to-work.svg',
-    domain: 'https://permits.weehs.org',
-    hosting: 'https://permit-to-work-two.vercel.app',
+    domain: window.WEEHS_OHSMS_DOMAIN,
+    hosting: window.WEEHS_OHSMS_HOSTING,
+    ohsmsKey: 'ptw',
+    modulePath: '/permits',
+    routes: { login: '/login', register: '/register-org', join: '/signup' },
     summary:
-      'Raise, review and close high-risk work permits — hot work, confined space, height, electrical and more — with a clear approval trail across every team.',
+      'Raise, review and close high-risk work permits — as the OHSMS Permit to Work module, with one organisation shared with LOTO, HIRA and the rest of the platform.',
     features: [
       'Digital permits with hazard, PPE & precaution checklists',
       'Dual-team approval — Engineering & Operations sign-off',
       'Live permit status with auto-expiry',
-      'Printable permit records for the work site',
+      'Same login as the rest of OHSMS — other modules stay placeholders until a suite or à-la-carte grant is on',
       'Full approval and closure audit trail'
     ],
+    launchNote:
+      'Open app → OHSMS /permits (registry key ptw, Operations suite). Register / join use the shell /register-org and /signup.',
+    accessNote:
+      'Maps to OHSMS ptw. Intent-only here — OHSMS /platform activates the Operations suite or this key à-la-carte. New orgs start with it as a placeholder.',
     modules: [
-      { id: 'raise', name: 'Raise permits', note: 'Create and submit new permits' },
-      { id: 'hot-work', name: 'Hot work permits', note: 'Welding, cutting, grinding, naked flame' },
-      { id: 'confined', name: 'Confined space permits', note: 'Entry, gas testing and standby watch' },
-      { id: 'height', name: 'Work at height permits', note: 'Scaffold, ladder, roof and fall arrest' },
-      { id: 'electrical', name: 'Electrical permits', note: 'LV / HV work, linked to LOTO isolations' },
-      { id: 'approvals', name: 'Approvals & sign-off', note: 'Engineering and Operations dual approval' },
-      { id: 'closure', name: 'Closure & audit trail', note: 'Auto-expiry, closure records and history' },
-      { id: 'reports', name: 'Dashboards & reports', note: 'Live permit status and site roll-ups' },
-      { id: 'admin', name: 'Users, sites & approvals', note: 'Invite, approve and assign roles' }
+      { id: 'ptw', name: 'Permit to work', note: 'OHSMS key ptw · /permits · Operations suite' }
     ],
     idealFor: 'Operations, shutdown teams, contractor-heavy sites',
     screens: [
@@ -135,25 +157,26 @@ window.WEEHS_PRODUCTS = [
     color: '#2563EB',
     mark: 'IA',
     logo: 'assets/img/logos/iso-45001-auditor.svg',
-    domain: 'https://audit.weehs.org',
-    hosting: 'https://internal-audit-portal.vercel.app',
+    domain: window.WEEHS_OHSMS_DOMAIN,
+    hosting: window.WEEHS_OHSMS_HOSTING,
+    ohsmsKey: 'audit',
+    modulePath: '/audit',
+    routes: { login: '/login', register: '/register-org', join: '/signup' },
     summary:
-      'Plan audits, raise findings and drive corrective actions across all your sites — with scheduling, CAPA workflows and real-time compliance dashboards.',
+      'Plan audits, raise findings and drive corrective actions — as the OHSMS Internal Audit module in the same organisation as every other OHSMS module.',
     features: [
       'ISO 45001 audit scheduling & execution matrix',
       'Clause-mapped findings, graded by severity',
       'CAPA workflow with owners and due dates',
-      'Org-scoped access with admin approvals',
+      'Same login as the rest of OHSMS — other modules stay placeholders until a suite or à-la-carte grant is on',
       'Live findings, CAPA and closure dashboards'
     ],
+    launchNote:
+      'Open app → OHSMS /audit (registry key audit, Compliance suite). Register / join use the shell /register-org and /signup.',
+    accessNote:
+      'Maps to OHSMS audit. Intent-only here — OHSMS /platform activates the Compliance suite or this key à-la-carte. New orgs start with it as a placeholder.',
     modules: [
-      { id: 'plan', name: 'Audit plan & schedule', note: 'Annual matrix, auditors and audit windows' },
-      { id: 'execute', name: 'Audit execution', note: 'Checklists, evidence capture and notes' },
-      { id: 'findings', name: 'Findings & NCs', note: 'Clause-mapped findings graded by severity' },
-      { id: 'capa', name: 'CAPA workflow', note: 'Owners, due dates, verification and closure' },
-      { id: 'clauses', name: 'Clause library', note: 'ISO 45001 clause set and local standards' },
-      { id: 'reports', name: 'Dashboards & reports', note: 'Findings, CAPA ageing and closure rates' },
-      { id: 'admin', name: 'Users, sites & approvals', note: 'Invite, approve and assign roles' }
+      { id: 'audit', name: 'Internal audit', note: 'OHSMS key audit · /audit · Compliance suite' }
     ],
     idealFor: 'QHSE managers, internal auditors, certification leads',
     screens: [
@@ -169,25 +192,26 @@ window.WEEHS_PRODUCTS = [
     color: '#4338CA',
     mark: 'HR',
     logo: 'assets/img/logos/hira.svg',
-    domain: 'https://hira.weehs.org',
-    hosting: 'https://hira-ruddy.vercel.app',
+    domain: window.WEEHS_OHSMS_DOMAIN,
+    hosting: window.WEEHS_OHSMS_HOSTING,
+    ohsmsKey: 'hira',
+    modulePath: '/hira',
+    routes: { login: '/login', register: '/register-org', join: '/signup' },
     summary:
-      'Identify hazards, score risk on the 5×5 matrix, apply the hierarchy of controls and track residual risk to ALARP — across all your activities and sites.',
+      'Identify hazards, score risk on the 5×5 matrix, apply the hierarchy of controls and track residual risk to ALARP — as the OHSMS HIRA module, one organisation with the rest of the platform.',
     features: [
       'Structured hazard identification & risk assessments',
       '5×5 risk matrix with ALARP handling',
       'Hierarchy of controls applied to every hazard',
-      'Residual risk tracked after controls',
-      'Live risk dashboard across every site & activity'
+      'Same login as the rest of OHSMS — other modules stay placeholders until a suite or à-la-carte grant is on',
+      'Residual risk tracked after controls'
     ],
+    launchNote:
+      'Open app → OHSMS /hira (registry key hira, Core suite). Register / join use the shell /register-org and /signup.',
+    accessNote:
+      'Maps to OHSMS hira. Intent-only here — OHSMS /platform activates the Core suite or this key à-la-carte. New orgs start with it as a placeholder.',
     modules: [
-      { id: 'register', name: 'Hazard register', note: 'Activities, tasks and identified hazards' },
-      { id: 'assessments', name: 'Risk assessments', note: 'Create, review and re-assess HIRA records' },
-      { id: 'matrix', name: 'Risk matrix settings', note: '5x5 matrix, thresholds and ALARP rules' },
-      { id: 'controls', name: 'Hierarchy of controls', note: 'Elimination through to PPE, per hazard' },
-      { id: 'residual', name: 'Residual risk & ALARP', note: 'Post-control scoring and sign-off' },
-      { id: 'reports', name: 'Dashboards & reports', note: 'Risk profile by site, activity and owner' },
-      { id: 'admin', name: 'Users, sites & approvals', note: 'Invite, approve and assign roles' }
+      { id: 'hira', name: 'Hazard identification & risk assessment', note: 'OHSMS key hira · /hira · Core suite' }
     ],
     idealFor: 'EHS teams, process safety, activity owners',
     screens: [
@@ -202,29 +226,43 @@ window.WEEHS_PRODUCTS = [
     mark: 'OS',
     logo: 'assets/img/logos/ohs-suite.svg',
     featured: true,
-    domain: 'https://suite.weehs.org',
-    hosting: 'https://weehs-4eb28.web.app',
+    ribbon: 'OHSMS shell',
+    domain: window.WEEHS_OHSMS_DOMAIN,
+    hosting: window.WEEHS_OHSMS_HOSTING,
+    routes: { login: '/login', register: '/register-org', join: '/signup' },
     summary:
-      'Every OHS module under one login — fire equipment, LOTO, permits, audits and risk assessment in a single management system with one user list and one site hierarchy.',
+      'Opens the OHSMS shell — one login, one organisation, then individual operating modules launch from the portal according to the suite or à-la-carte subscription. New workspaces seed every module as a placeholder until it is activated.',
     features: [
-      'All WE EHS modules included, nothing switched off',
+      'Hands off to the OHSMS shell (not a standalone mini-app)',
       'One organisation, one user list, one site hierarchy',
-      'Cross-module dashboards and reporting',
-      'Admin approvals and role-based access',
-      'Single sign-in for the whole safety team'
+      'Modules launch from the shell once a suite or à-la-carte grant is on',
+      'Packaging suites: Core, Operations, Fire & Emergency, Compliance, Full',
+      'Placeholders until activated — entitlements live in OHSMS, not this site'
     ],
+    launchNote:
+      'Open app / trial / register / join go to the OHSMS shell at /login, /register-org and /signup. Module cards deep-link their registry prefixes on the same origin.',
+    accessNote:
+      'These keys match the OHSMS module registry. This console is intent-only — OHSMS /platform activates suites and à-la-carte modules. New orgs start with every module as a placeholder.',
     modules: [
-      { id: 'fire', name: 'Fire equipment', note: 'Full Fire Marshal module inside the suite' },
-      { id: 'loto', name: 'Hazardous energy control', note: 'Full HECP LOTO module inside the suite' },
-      { id: 'permits', name: 'Permit to work', note: 'Full permit module inside the suite' },
-      { id: 'audit', name: 'ISO 45001 audit', note: 'Full audit and CAPA module inside the suite' },
-      { id: 'hira', name: 'Risk assessment', note: 'Full HIRA module inside the suite' },
-      { id: 'incidents', name: 'Incidents & investigation', note: 'Reporting, root cause and actions' },
-      { id: 'training', name: 'Training & competency', note: 'Matrix, records and expiry alerts' },
-      { id: 'dashboards', name: 'Cross-module dashboards', note: 'One view across every module' },
-      { id: 'users', name: 'Users, roles & sites', note: 'One user list and one site hierarchy' }
+      { id: 'incidents', name: 'Incidents & investigation', note: 'OHSMS · Core suite — placeholder until activated' },
+      { id: 'hira', name: 'Hazard identification & risk assessment', note: 'OHSMS · Core suite — placeholder until activated' },
+      { id: 'inspections', name: 'Inspections', note: 'OHSMS · Core suite — placeholder until activated' },
+      { id: 'training', name: 'Training & certifications', note: 'OHSMS · Core suite — placeholder until activated' },
+      { id: 'documents', name: 'Document library & SDS', note: 'OHSMS · Core suite — placeholder until activated' },
+      { id: 'actions', name: 'Central action tracker', note: 'OHSMS · Core suite — placeholder until activated' },
+      { id: 'ptw', name: 'Permit to work', note: 'OHSMS · Operations suite — placeholder until activated' },
+      { id: 'loto', name: 'Lockout / tagout', note: 'OHSMS · Operations suite — placeholder until activated' },
+      { id: 'weather', name: 'Site weather risk', note: 'OHSMS · Operations suite — placeholder until activated' },
+      { id: 'cctv', name: 'CCTV inventory & health', note: 'OHSMS · Operations suite — placeholder until activated' },
+      { id: 'equipment', name: 'Emergency equipment inventory', note: 'OHSMS · Fire & Emergency suite — placeholder until activated' },
+      { id: 'drills', name: 'Mock drills', note: 'OHSMS · Fire & Emergency suite — placeholder until activated' },
+      { id: 'emergency', name: 'Emergency response (FERP)', note: 'OHSMS · Fire & Emergency suite — placeholder until activated' },
+      { id: 'audit', name: 'Internal audit', note: 'OHSMS · Compliance suite — placeholder until activated' },
+      { id: 'committee', name: 'HSE committee meetings', note: 'OHSMS · Compliance suite — placeholder until activated' },
+      { id: 'objectives', name: 'Objectives & targets', note: 'OHSMS · Compliance suite — placeholder until activated' },
+      { id: 'stakeholder', name: 'Customer escalations & legal', note: 'OHSMS · Compliance suite — placeholder until activated' }
     ],
-    idealFor: 'Multi-site organisations standardising EHS',
+    idealFor: 'Multi-site organisations standardising EHS on one platform',
     screens: [
       { src: 'assets/screens/ohs-suite-register.png', caption: 'OHS Suite — register organization' }
     ]
