@@ -34,7 +34,7 @@
     endpoint: null,
     trialDays: 14,                // length quoted in the copy — confirm commercially
     salesEmail: 'info@weehs.org',
-    salesPhone: '+91 74570 06625',
+    salesPhone: '+91 77939 66625',
     carouselMs: 5000,
     // Flip to true once the weehs.org subdomains resolve and serve HTTPS.
     // false  -> links use each product's current platform URL (hosting)
