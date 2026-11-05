@@ -761,3 +761,13 @@ body.has-session { padding-bottom: 88px; }
 @media (prefers-reduced-motion: reduce) {
   .product-card:hover .product-mark-img { transform: none; }
 }
+
+/* ── 16. Legal pages ───────────────────────────────────────────────────── */
+.legal { max-width: 44rem; }
+.legal h1 { margin-bottom: .35rem; }
+.legal h2 { font-size: 1.28rem; letter-spacing: -.015em; margin: 1.85rem 0 .45rem; }
+.legal .legal-links { margin: .15rem 0 1.5rem; }
+.legal .legal-links a { font-weight: 650; }
+.legal ul:not(.contact-list) { margin: 0 0 1rem; padding-left: 1.15rem; }
+.legal li { margin: .28rem 0; }
+.legal .contact-list { margin-top: .35rem; }
