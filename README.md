@@ -114,7 +114,7 @@ var CONFIG = {
   endpoint: 'https://api.weehs.org/v1/leads',   // POSTs {id, type, at, data} as JSON
   trialDays: 14,
   salesEmail: 'info@weehs.org',
-  salesPhone: '+91 74570 06625',
+  salesPhone: '+91 77939 66625',
   carouselMs: 5000,
   domainsLive: false,
   routes: { login: '/login', register: '/register-org', join: '/signup' }
