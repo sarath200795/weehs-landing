@@ -186,6 +186,9 @@
 
 .app-mods { padding: .3rem .9rem .9rem; }
 .app-block:not(.is-on) .app-mods { opacity: .45; }
+.app-note {
+  margin: .55rem 0 .15rem; font-size: .78rem; line-height: 1.45; color: var(--muted);
+}
 .mods-bulk { display: flex; gap: .9rem; padding: .5rem 0; border-bottom: 1px dashed var(--line); }
 .mods-bulk .linkish { font-size: .8rem; }
 
